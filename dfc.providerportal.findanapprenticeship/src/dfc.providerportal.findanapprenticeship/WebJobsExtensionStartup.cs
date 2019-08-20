@@ -1,4 +1,4 @@
-﻿using dfc.providerportal.findanapprenticeship;
+﻿using Dfc.Providerportal.FindAnApprenticeship;
 using Dfc.ProviderPortal.Packages.AzureFunctions.DependencyInjection;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
@@ -8,7 +8,7 @@ using System;
 
 [assembly: WebJobsStartup(typeof(WebJobsExtensionStartup), "Web Jobs Extension Startup")]
 
-namespace dfc.providerportal.findanapprenticeship
+namespace Dfc.Providerportal.FindAnApprenticeship
 {
     public class WebJobsExtensionStartup : IWebJobsStartup
     {

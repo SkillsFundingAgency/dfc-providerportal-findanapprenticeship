@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 
-namespace dfc.providerportal.findanapprenticeship
+namespace Dfc.Providerportal.FindAnApprenticeship
 {
     public class Startup
     {
