@@ -7,10 +7,10 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships
 {
     public interface IApprenticeship
     {
-        Guid id { get; set; } // Cosmos DB id
+        Guid Id { get; set; } // Cosmos DB id
 
-        int? ApprenticeshipId { get; set; } // For backwards compatibility with Tribal
-        int? TribalProviderId { get; set; } // For backwards compatibility with Tribal
+        int? ApprenticeshipId { get; set; } // For backwards compatibility with DAS
+        int? TribalProviderId { get; set; } // For backwards compatibility with DAS
         string ApprenticeshipTitle { get; set; }
         Guid ProviderId { get; set; } // ???
         int ProviderUKPRN { get; set; } // As we are trying to inforce unique UKPRN per Provider

@@ -6,19 +6,19 @@ using System.Text;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Models.Enums
 {
-    public enum TribalDeliveryModes
+    public enum DASDeliveryModes
     {
         [Display(Name = "Undefined")]
         [Description("Undefined")]
         Undefined = 0,
         [Display(Name = "100% Employer Based")]
-        [Description("100% Employer Based")]
+        [Description("100PercentEmployer")]
         EmployerBased = 1,
         [Display(Name = "Day release")]
-        [Description("Day Release")]
+        [Description("DayRelease")]
         DayRelease = 2,
         [Display(Name = "Block release")]
-        [Description("Block Release")]
+        [Description("BlockRelease")]
         BlockRelease = 3,
 
     }

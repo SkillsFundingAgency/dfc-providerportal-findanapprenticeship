@@ -1,7 +1,7 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Models.Tribal;
+﻿using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 using System.Collections.Generic;
 
-namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Tribal
+namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface IFramework
     {
@@ -10,8 +10,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Tribal
         int FrameworkCode { get; set; }
 
         int? ProgType { get; set; }
-
-        int? Level { get; set; }
 
         List<LocationRef> Locations { get; set; }
         int? PathwayCode { get; set; }

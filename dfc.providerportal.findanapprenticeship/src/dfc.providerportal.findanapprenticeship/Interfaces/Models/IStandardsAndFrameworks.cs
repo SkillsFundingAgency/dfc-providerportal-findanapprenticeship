@@ -17,7 +17,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models
 
         //Generic
         ApprenticeshipType ApprenticeshipType { get; set; }
-        Guid id { get; set; } // Cosmos DB id
+        Guid Id { get; set; } // Cosmos DB id
         DateTime EffectiveFrom { get; set; }
         DateTime? CreatedDateTimeUtc { get; set; }
         DateTime? ModifiedDateTimeUtc { get; set; }

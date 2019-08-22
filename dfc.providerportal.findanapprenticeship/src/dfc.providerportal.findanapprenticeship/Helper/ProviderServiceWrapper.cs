@@ -27,9 +27,10 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 var json = response.Content.ReadAsStringAsync().Result;
                 if (!json.StartsWith("["))
                     json = "[" + json + "]";
-
+                client.Dispose();
                 return JsonConvert.DeserializeObject<IEnumerable<Provider>>(json);
             }
+            client.Dispose();
             return new List<Provider>();
 
         }

@@ -9,7 +9,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Providers
         IContactpersonaldetails ContactPersonalDetails { get; set; }
         object ContactRole { get; set; }
         string ContactTelephone1 { get; set; }
-        object ContactTelephone2 { get; set; }
+        string ContactTelephone2 { get; set; }
         string ContactFax { get; set; }
         string ContactWebsiteAddress { get; set; }
         string ContactEmail { get; set; }

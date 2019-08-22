@@ -1,4 +1,9 @@
 ﻿using Dfc.Providerportal.FindAnApprenticeship;
+using Dfc.Providerportal.FindAnApprenticeship.Helper;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
+using Dfc.Providerportal.FindAnApprenticeship.Services;
+using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.ProviderPortal.Packages.AzureFunctions.DependencyInjection;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
@@ -23,12 +28,14 @@ namespace Dfc.Providerportal.FindAnApprenticeship
                 .Build();
 
             builder.Services.AddSingleton<IConfiguration>(configuration);
-            //builder.Services.Configure<CosmosDbSettings>(configuration.GetSection(nameof(CosmosDbSettings)));
-            //builder.Services.Configure<CosmosDbCollectionSettings>(configuration.GetSection(nameof(CosmosDbCollectionSettings)));
-            //builder.Services.Configure<ProviderServiceSettings>(configuration.GetSection(nameof(ProviderServiceSettings)));
-            //builder.Services.AddScoped<ICosmosDbHelper, CosmosDbHelper>();
-            //builder.Services.AddScoped<ITribalHelper, TribalHelper>();
-            //builder.Services.AddScoped<IApprenticeshipService, ApprenticeshipService>();
+            builder.Services.Configure<CosmosDbSettings>(configuration.GetSection(nameof(CosmosDbSettings)));
+            builder.Services.Configure<CosmosDbCollectionSettings>(configuration.GetSection(nameof(CosmosDbCollectionSettings)));
+            builder.Services.Configure<ProviderServiceSettings>(configuration.GetSection(nameof(ProviderServiceSettings)));
+            builder.Services.Configure<ReferenceDataServiceSettings>(configuration.GetSection(nameof(ReferenceDataServiceSettings)));
+            builder.Services.AddScoped<IReferenceDataServiceWrapper, ReferenceDataServiceWrapper>();
+            builder.Services.AddScoped<ICosmosDbHelper, CosmosDbHelper>();
+            builder.Services.AddScoped<IDASHelper, DASHelper>();
+            builder.Services.AddScoped<IApprenticeshipService, ApprenticeshipService>();
 
 
         }

@@ -1,13 +1,13 @@
 ﻿using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
-using Dfc.Providerportal.FindAnApprenticeship.Models.Tribal;
+using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 using System.Collections.Generic;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
 {
-    public interface ITribalHelper
+    public interface IDASHelper
     {
-        TribalProvider CreateTribalProviderFromProvider(Provider provider);
+        DASProvider CreateDASProviderFromProvider(Provider provider);
         List<Location> ApprenticeshipLocationsToLocations(IEnumerable<ApprenticeshipLocation> locations);
         List<Standard> ApprenticeshipsToStandards(IEnumerable<Apprenticeship> apprenticeships);
         List<Framework> ApprenticeshipsToFrameworks(IEnumerable<Apprenticeship> apprenticeships);
