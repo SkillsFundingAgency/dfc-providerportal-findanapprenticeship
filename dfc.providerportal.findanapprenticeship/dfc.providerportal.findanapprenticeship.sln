@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29209.62
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dfc.Providerportal.FindAnApprenticeship", "src\dfc.providerportal.findanapprenticeship\Dfc.Providerportal.FindAnApprenticeship.csproj", "{0CB684C5-CE9C-464E-AE4D-598807A60F0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dfc.providerportal.findanapprenticeship.tests", "tests\dfc.providerportal.findanapprenticeship.tests\dfc.providerportal.findanapprenticeship.tests.csproj", "{7D1CE6E0-9096-4DB9-A8CE-8301598573E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dfc.providerportal.findanapprenticeship.tests", "tests\dfc.providerportal.findanapprenticeship.tests\dfc.providerportal.findanapprenticeship.tests.csproj", "{7D1CE6E0-9096-4DB9-A8CE-8301598573E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

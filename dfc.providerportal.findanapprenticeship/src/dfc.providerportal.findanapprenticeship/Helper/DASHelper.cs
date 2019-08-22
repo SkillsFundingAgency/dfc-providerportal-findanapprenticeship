@@ -3,51 +3,62 @@ using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models.Regions;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
-using Dfc.Providerportal.FindAnApprenticeship.Models.Tribal;
+using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dfc.ProviderPortal.Packages;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
-    public class TribalHelper : ITribalHelper
+    public class DASHelper : IDASHelper
     {
-        public TribalProvider CreateTribalProviderFromProvider(Provider provider)
+        private readonly IReferenceDataServiceWrapper _referenceDataServiceWrapper;
+        public DASHelper(IReferenceDataServiceWrapper referenceDataServiceWrapper)
         {
+            Throw.IfNull(referenceDataServiceWrapper, nameof(referenceDataServiceWrapper));
+            _referenceDataServiceWrapper = referenceDataServiceWrapper;
+        }
+        public DASProvider CreateDASProviderFromProvider(Provider provider)
+        {
+            
             var contactDetails = provider.ProviderContact.FirstOrDefault();
-
-            return new TribalProvider
+            var feChoice = _referenceDataServiceWrapper.GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber).FirstOrDefault();
+            return new DASProvider
             {
-                Id = int.Parse(provider.UnitedKingdomProviderReferenceNumber),
+                Id = provider.ProviderId ?? int.Parse(provider.UnitedKingdomProviderReferenceNumber),
                 Email = contactDetails != null ? contactDetails.ContactEmail : string.Empty,
-                EmployerSatisfaction = 0.0,
-                LearnerSatisfaction = 0.0,
+                EmployerSatisfaction = feChoice.EmployerSatisfaction ?? 0.0,
+                LearnerSatisfaction = feChoice.LearnerSatisfaction ?? 0.0,
                 MarketingInfo = provider.MarketingInformation,
                 Name = provider.ProviderName,
+                TradingName = provider.TradingName,
                 NationalProvider = provider.NationalApprenticeshipProvider,
                 UKPRN = int.Parse(provider.UnitedKingdomProviderReferenceNumber),
-                Website = contactDetails != null ? contactDetails.ContactWebsiteAddress : string.Empty
+                Website = contactDetails != null ? contactDetails.ContactWebsiteAddress : string.Empty,
+                Phone = string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) ? contactDetails.ContactTelephone1 : contactDetails.ContactTelephone2
+
             };
 
         }
         public List<Location> ApprenticeshipLocationsToLocations(IEnumerable<ApprenticeshipLocation> locations)
         {
-            List<Location> tribalLocations = new List<Location>();
+            List<Location> DASLocations = new List<Location>();
             if (locations.Any())
             {
                 foreach (var location in locations)
                 {
                     if (location.Regions != null)
                     {
-                        tribalLocations.AddRange(RegionsToLocations(location.Regions));
+                        DASLocations.AddRange(RegionsToLocations(location.Regions));
                     }
                     else
                     {
-                        tribalLocations.Add(new Location
+                        DASLocations.Add(new Location
                         {
-                            ID = location.TribalId ?? (int?) null,
+                            ID = location.DASId ?? (int?) null,
                             GuidID = location.Id,
-                            Address = location.Address != null ? location.Address : null,
+                            Address = location.Address ?? null,
                             Email = location.Address != null ? location.Address.Email : string.Empty,
                             Name = location.Name,
                             Phone = location.Phone,
@@ -58,7 +69,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 }
             }
 
-            return tribalLocations;
+            return DASLocations;
         }
         public List<Standard> ApprenticeshipsToStandards(IEnumerable<Apprenticeship> apprenticeships)
         {
@@ -77,7 +88,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                         Email = apprenticeship.ContactEmail,
                         Phone = apprenticeship.ContactTelephone
                     },
-                    Locations = CreateLocationRef(apprenticeship.ApprenticeshipLocations, apprenticeship)
+                    Locations = CreateLocationRef(apprenticeship.ApprenticeshipLocations)
                 });
             }
             return standards;
@@ -92,18 +103,16 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 {
                     FrameworkCode = apprenticeship.FrameworkCode.Value,
                     FrameworkInfoUrl = apprenticeship.Url,
-                    Level = !string.IsNullOrEmpty(apprenticeship.NotionalNVQLevelv2) ? int.Parse(apprenticeship.NotionalNVQLevelv2) : (int?)null,
-                    //Locations
                     MarketingInfo = apprenticeship.MarketingInformation,
-                    PathwayCode = apprenticeship.PathwayCode.HasValue ? apprenticeship.PathwayCode.Value : (int?)null,
-                    ProgType = apprenticeship.ProgType.HasValue ? apprenticeship.ProgType.Value : (int?)null,
+                    PathwayCode = apprenticeship.PathwayCode ?? (int?)null,
+                    ProgType = apprenticeship.ProgType ?? (int?)null,
                     Contact = new Contact
                     {
                         ContactUsUrl = apprenticeship.ContactWebsite,
                         Email = apprenticeship.ContactEmail,
                         Phone = apprenticeship.ContactTelephone
                     },
-                    Locations = CreateLocationRef(apprenticeship.ApprenticeshipLocations, apprenticeship)
+                    Locations = CreateLocationRef(apprenticeship.ApprenticeshipLocations)
                 });
             }
             return frameworks;
@@ -130,7 +139,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
             return apprenticeshipLocations;
         }
-        internal List<LocationRef> CreateLocationRef(IEnumerable<ApprenticeshipLocation> locations, Apprenticeship apprenticeship)
+        internal List<LocationRef> CreateLocationRef(IEnumerable<ApprenticeshipLocation> locations)
         {
             List<LocationRef> locationRefs = new List<LocationRef>();
             var subRegionItemModels = new SelectRegionModel().RegionItems.SelectMany(x => x.SubRegion);
@@ -143,9 +152,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                         locationRefs.Add(new LocationRef
                         {
                             ID = subRegionItemModels.Where(x => x.Id == region).Select(y => y.ApiLocationId.Value).FirstOrDefault(),
-                            GuidID = location.Id,
                             DeliveryModes = ConvertToApprenticeshipDeliveryModes(location.DeliveryModes),
-                            Radius = location.Radius.HasValue ? location.Radius.Value : 0
+                            Radius = location.Radius ?? 0
                         }) ;
                     }
                 }
@@ -154,9 +162,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     locationRefs.Add(new LocationRef
                     {
                         ID = location.LocationId,
-                        GuidID = location.Id,
                         DeliveryModes = ConvertToApprenticeshipDeliveryModes(location.DeliveryModes),
-                        Radius = location.Radius.HasValue ? location.Radius.Value : 0
+                        Radius = location.Radius ?? 0
                     });
                 }
 
@@ -164,26 +171,26 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return locationRefs;
 
         }
-        internal List<int> ConvertToApprenticeshipDeliveryModes(List<int> courseDirectoryModes)
+        internal List<string> ConvertToApprenticeshipDeliveryModes(List<int> courseDirectoryModes)
         {
-            List<int> tribalList = new List<int>();
+            List<string> DASList = new List<string>();
             foreach (var mode in courseDirectoryModes)
             {
                 switch(mode)
                 {
                     case (int)ApprenticeShipDeliveryLocation.DayRelease:
                         {
-                            tribalList.Add((int)TribalDeliveryModes.DayRelease);
+                            DASList.Add(DASDeliveryModes.DayRelease.ToDescription());
                             break;
                         }
                     case (int)ApprenticeShipDeliveryLocation.BlockRelease:
                         {
-                            tribalList.Add((int)TribalDeliveryModes.BlockRelease);
+                            DASList.Add(DASDeliveryModes.BlockRelease.ToDescription());
                             break;
                         }
                     case (int)ApprenticeShipDeliveryLocation.EmployerAddress:
                         {
-                            tribalList.Add((int)TribalDeliveryModes.EmployerBased);
+                            DASList.Add(DASDeliveryModes.EmployerBased.ToDescription());
                             break;
                         }
 
@@ -191,10 +198,10 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
             if(courseDirectoryModes.Count == 0)
             {
-                tribalList.Add((int)TribalDeliveryModes.EmployerBased);
+                DASList.Add(DASDeliveryModes.EmployerBased.ToDescription());
             }
-            tribalList.Sort();
-            return tribalList;
+            DASList.Sort();
+            return DASList;
         }
     }
 }

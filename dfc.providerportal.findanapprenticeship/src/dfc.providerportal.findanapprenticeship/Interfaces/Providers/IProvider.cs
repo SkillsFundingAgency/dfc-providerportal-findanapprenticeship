@@ -5,7 +5,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Providers
 {
     public interface IProvider
     {
-        Guid id { get; set; }
+        Guid Id { get; set; }
         string UnitedKingdomProviderReferenceNumber { get; set; }
         string ProviderName { get; set; }
         string CourseDirectoryName { get; set; }

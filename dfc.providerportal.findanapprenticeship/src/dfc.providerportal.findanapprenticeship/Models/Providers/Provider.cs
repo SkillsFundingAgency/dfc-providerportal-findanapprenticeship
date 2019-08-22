@@ -16,7 +16,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
             VerificationDetails = verificationdetails;
         }
         
-        public Guid id { get; set; }
+        public Guid Id { get; set; }
         public string UnitedKingdomProviderReferenceNumber { get; set; }
         public string ProviderName { get; set; }
         public string CourseDirectoryName { get; set; }

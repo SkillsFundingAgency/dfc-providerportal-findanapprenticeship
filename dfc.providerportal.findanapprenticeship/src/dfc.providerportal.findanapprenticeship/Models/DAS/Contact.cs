@@ -1,6 +1,6 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Tribal;
+﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS;
 
-namespace Dfc.Providerportal.FindAnApprenticeship.Models.Tribal
+namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
 {
     public class Contact : IContact
     {

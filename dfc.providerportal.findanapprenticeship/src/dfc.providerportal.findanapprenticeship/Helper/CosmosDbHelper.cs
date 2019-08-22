@@ -227,7 +227,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             foreach (var doc in docs)
             {
-                Uri docUri = UriFactory.CreateDocumentUri(_settings.DatabaseId, collectionId, doc.id.ToString());
+                Uri docUri = UriFactory.CreateDocumentUri(_settings.DatabaseId, collectionId, doc.Id.ToString());
                 var result = await client.DeleteDocumentAsync(docUri);
 
                 if (result.StatusCode == HttpStatusCode.NoContent)
@@ -261,7 +261,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             foreach (var doc in docs)
             {
-                Uri docUri = UriFactory.CreateDocumentUri(_settings.DatabaseId, collectionId, doc.id.ToString());
+                Uri docUri = UriFactory.CreateDocumentUri(_settings.DatabaseId, collectionId, doc.Id.ToString());
                 var result = await client.DeleteDocumentAsync(docUri, new RequestOptions() { PartitionKey = new PartitionKey(doc.ProviderUKPRN) });
 
                 if (result.StatusCode == HttpStatusCode.NoContent)

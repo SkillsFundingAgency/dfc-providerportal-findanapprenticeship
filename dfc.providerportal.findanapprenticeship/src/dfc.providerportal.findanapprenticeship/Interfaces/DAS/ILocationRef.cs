@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Tribal
+namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface ILocationRef
     {
-        List<int> DeliveryModes { get; set; }
+        List<string> DeliveryModes { get; set; }
         int? ID { get; set; }
-        Guid GuidID { get; set; }
         int Radius { get; set; }
     }
 }

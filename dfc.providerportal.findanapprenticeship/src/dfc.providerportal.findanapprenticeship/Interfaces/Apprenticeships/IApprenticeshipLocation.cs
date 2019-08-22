@@ -1,5 +1,5 @@
 ﻿using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
-using Dfc.Providerportal.FindAnApprenticeship.Models.Tribal;
+using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 using System;
 using System.Collections.Generic;
 
@@ -9,7 +9,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships
     {
         Guid Id { get; set; } // Cosmos DB id
         Guid VenueId { get; set; }
-        int? TribalId { get; set; }
+        int? DASId { get; set; }
         int ApprenticeshipLocationId { get; set; }
         Guid? LocationGuidId { get; set; }
         int? LocationId { get; set; }

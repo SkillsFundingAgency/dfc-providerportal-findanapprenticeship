@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Tribal
+namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface IAddress
     {

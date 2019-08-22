@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Tribal
+namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface IContact
     {
-        string ContactUsUrl { get; set; }
-        string Email { get; set; }
         string Phone { get; set; }
+        string Email { get; set; }
+        string ContactUsUrl { get; set; }
     }
 }

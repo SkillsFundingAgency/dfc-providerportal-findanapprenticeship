@@ -1,7 +1,7 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Models.Tribal;
+﻿using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 using System.Collections.Generic;
 
-namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Tribal
+namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface IStandard
     {
