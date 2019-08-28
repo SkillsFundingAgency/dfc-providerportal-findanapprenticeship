@@ -14,10 +14,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
     public class DASHelper : IDASHelper
     {
         private readonly IReferenceDataServiceWrapper _referenceDataServiceWrapper;
+        private int _intIdentifier { get; set; }
         public DASHelper(IReferenceDataServiceWrapper referenceDataServiceWrapper)
         {
             Throw.IfNull(referenceDataServiceWrapper, nameof(referenceDataServiceWrapper));
             _referenceDataServiceWrapper = referenceDataServiceWrapper;
+            _intIdentifier = 300000;
         }
         public DASProvider CreateDASProviderFromProvider(Provider provider)
         {
@@ -26,7 +28,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             var feChoice = _referenceDataServiceWrapper.GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber).FirstOrDefault();
             return new DASProvider
             {
-                Id = provider.ProviderId ?? int.Parse(provider.UnitedKingdomProviderReferenceNumber),
+                Id = provider.ProviderId ?? GenerateIntIdentifier(),
                 Email = contactDetails != null ? contactDetails.ContactEmail : string.Empty,
                 EmployerSatisfaction = feChoice.EmployerSatisfaction ?? 0.0,
                 LearnerSatisfaction = feChoice.LearnerSatisfaction ?? 0.0,
@@ -202,6 +204,10 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
             DASList.Sort();
             return DASList;
+        }
+        internal int GenerateIntIdentifier()
+        {
+            return _intIdentifier++;
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Controller
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetUpdatedApprenticeshipsAsProvider()
+        public IActionResult GetApprenticeshipsAsProvider()
         {
             return Ok();
         }
