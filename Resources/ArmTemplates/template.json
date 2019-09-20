@@ -144,7 +144,7 @@
               "value": [
                 {
                   "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                  "value": "[reference('ppapprenticeshipAppInsights').outputs.InstrumentationKey.value]"
+                  "value": "[reference('ppfindapprenticeshipAppInsights').outputs.InstrumentationKey.value]"
                 },
                 {
                   "name": "FUNCTIONS_EXTENSION_VERSION",
