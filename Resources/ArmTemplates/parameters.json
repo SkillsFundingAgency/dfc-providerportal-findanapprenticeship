@@ -28,6 +28,21 @@
       },
       "apiSuffix": {
         "value": "__apiSuffix__"
+      },
+      "cosmosDbEndpoint": {
+        "value": "__providerPortalCosmosDbFqdn__"
+      },
+      "cosmosDbAccountKey": {
+        "value": "__providerPortalCosmosDBPrimaryKey__"
+      },
+      "apimKey": {
+        "value": "__apimKey__"
+      },
+      "providerApiUrl": {
+        "value": "__providerApiUrl__"
+      },
+      "referenceDataApiUrl": {
+        "value": "__referenceDataApiUrl__"
       }
     }
   }
