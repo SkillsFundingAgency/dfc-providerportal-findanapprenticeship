@@ -56,6 +56,36 @@
         "metadata": {
           "description": "Suffix uniquely identifying this API and all of its resource paths within APIM, defaults to apiName"
         }
+      },
+      "cosmosDbEndpoint": {
+        "type": "string",
+        "metadata": {
+          "description": "Url to the providerportal cosmosb account"
+        }
+      },
+      "cosmosDbAccountKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "primary key for the providerportal cosmosb account"
+        }
+      },
+      "apimKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "Key to access APIM instances"
+        }
+      },
+      "providerApiUrl": {
+        "type": "string",
+        "metadata": {
+          "description": "Url to the provider api"
+        }
+      },
+      "referenceDataApiUrl": {
+        "type": "string",
+        "metadata": {
+          "description": "Url to the reference data api"
+        }
       }
     },
     "variables": {
@@ -123,6 +153,38 @@
                 {
                   "name": "AzureWebJobsStorage",
                   "value": "[parameters('storageConnectionString')]"
+                },
+                {
+                  "name": "CosmosDbSettings__EndpointUri",
+                  "value": "[parameters('cosmosDbEndpoint')]"
+                },
+                {
+                  "name": "CosmosDbSettings__PrimaryKey",
+                  "value": "[parameters('cosmosDbAccountKey')]"
+                },
+                {
+                  "name": "CosmosDbSettings__DatabaseId",
+                  "value": "providerportal"
+                },
+                {
+                  "name": "CosmosDbCollectionSettings__ApprenticeshipCollectionId",
+                  "value": "apprenticeship"
+                },
+                {
+                  "name": "ProviderServiceSettings__ApiUrl",
+                  "value": "[parameters('providerApiUrl')]"
+                },
+                {
+                  "name": "ProviderServiceSettings__ApiKey",
+                  "value": "[parameters('apimKey')]"
+                },
+                {
+                  "name": "ReferenceDataServiceSettings__ApiUrl",
+                  "value": "[concat(parameters('referenceDataApiUrl'), '/api/referencedata/fe-choices/')]"
+                },
+                {
+                  "name": "ReferenceDataServiceSettings_ApiKey",
+                  "value": "[parameters('apimKey')]"
                 }
               ]
             },

@@ -25,6 +25,21 @@
       },
       "apiProductDisplayName": {
         "value": "Find a course"
+      },
+      "cosmosDbEndpoint": {
+        "value": "https://providerportal-cosmosdb-endpoint:443/"
+      },
+      "cosmosDbAccountKey": {
+        "value": "not-a-real-cosmosdb-account-key"
+      },
+      "apimKey": {
+        "value": "not-a-real-apim-key"
+      },
+      "providerApiUrl": {
+        "value": "https://apim-instance/providers"
+      },
+      "referenceDataApiUrl": {
+        "value": "https://apim-instance/referencedata"
       }
     }
   }
