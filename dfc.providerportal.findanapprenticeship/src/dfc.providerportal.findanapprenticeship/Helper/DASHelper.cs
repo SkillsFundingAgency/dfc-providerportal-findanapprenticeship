@@ -58,7 +58,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     {
                         DASLocations.Add(new Location
                         {
-                            ID = location.DASId ?? (int?) null,
+                            ID = location.TribalId ?? (int?) null,
                             GuidID = location.Id,
                             Address = location.Address ?? null,
                             Email = location.Address != null ? location.Address.Email : string.Empty,
