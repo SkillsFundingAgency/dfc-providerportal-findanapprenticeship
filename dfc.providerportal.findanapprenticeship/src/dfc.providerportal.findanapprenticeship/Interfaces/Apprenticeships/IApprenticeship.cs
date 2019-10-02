@@ -7,10 +7,10 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships
 {
     public interface IApprenticeship
     {
-        Guid Id { get; set; } // Cosmos DB id
+        Guid id { get; set; } // Cosmos DB id
 
-        int? ApprenticeshipId { get; set; } // For backwards compatibility with DAS
-        int? TribalProviderId { get; set; } // For backwards compatibility with DAS
+        int? ApprenticeshipId { get; set; } // For backwards compatibility with Tribal
+        int? TribalProviderId { get; set; } // For backwards compatibility with Tribal
         string ApprenticeshipTitle { get; set; }
         Guid ProviderId { get; set; } // ???
         int ProviderUKPRN { get; set; } // As we are trying to inforce unique UKPRN per Provider
@@ -26,7 +26,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships
         int? PathwayCode { get; set; }
         int? StandardCode { get; set; }
         int? Version { get; set; }
-
         // Common properties for Standard & Framework
         string MarketingInformation { get; set; }
         string Url { get; set; }
@@ -34,7 +33,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships
         string ContactEmail { get; set; }
         string ContactWebsite { get; set; }
 
-        IEnumerable<ApprenticeshipLocation> ApprenticeshipLocations { get; set; }
+        List<ApprenticeshipLocation> ApprenticeshipLocations { get; set; }
+
         // Standard auditing properties 
         RecordStatus RecordStatus { get; set; }
         DateTime CreatedDate { get; set; }
@@ -43,5 +43,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships
         string UpdatedBy { get; set; }
 
         string NotionalNVQLevelv2 { get; set; }
+        List<BulkUploadError> BulkUploadErrors { get; set; }
     }
 }
