@@ -29,15 +29,15 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return new DASProvider
             {
                 Id = provider.ProviderId ?? GenerateIntIdentifier(),
-                Email = contactDetails != null ? contactDetails.ContactEmail : string.Empty,
-                EmployerSatisfaction = feChoice.EmployerSatisfaction ?? 0.0,
-                LearnerSatisfaction = feChoice.LearnerSatisfaction ?? 0.0,
-                MarketingInfo = provider.MarketingInformation,
-                Name = provider.ProviderName,
-                TradingName = provider.TradingName,
+                Email = contactDetails?.ContactEmail ?? string.Empty,
+                EmployerSatisfaction = feChoice?.EmployerSatisfaction ?? 0.0,
+                LearnerSatisfaction = feChoice?.LearnerSatisfaction ?? 0.0,
+                MarketingInfo = provider.MarketingInformation ?? string.Empty,
+                Name = provider.ProviderName ?? string.Empty,
+                TradingName = provider.TradingName ?? string.Empty,
                 NationalProvider = provider.NationalApprenticeshipProvider,
                 UKPRN = int.Parse(provider.UnitedKingdomProviderReferenceNumber),
-                Website = contactDetails != null ? contactDetails.ContactWebsiteAddress : string.Empty,
+                Website = contactDetails?.ContactWebsiteAddress ?? string.Empty,
                 Phone = string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) ? contactDetails.ContactTelephone1 : contactDetails.ContactTelephone2
 
             };
