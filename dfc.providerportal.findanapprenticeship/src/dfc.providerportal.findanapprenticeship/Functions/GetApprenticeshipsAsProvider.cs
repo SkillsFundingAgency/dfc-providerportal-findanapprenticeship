@@ -33,7 +33,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                 var providers = apprenticeshipService.ApprenticeshipsToDASProviders(persisted);
                 return new OkObjectResult(providers);
 
-            }
+            } 
             catch (Exception e)
             {
                 return new InternalServerErrorObjectResult(e);
