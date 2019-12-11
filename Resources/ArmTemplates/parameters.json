@@ -14,21 +14,6 @@
       "storageConnectionString": {
         "value": "__providerPortalStorageConnectionStr__"
       },
-      "apimServiceName": {
-        "value": "__apimServiceName__"
-      },
-      "apimResourceGroup": {
-        "value": "__sharedResourceGroup__"
-      },
-      "apiProductDisplayName": {
-        "value": "__apiProductDisplayName__"
-      },
-      "apiName": {
-        "value": "__apiName__"
-      },
-      "apiSuffix": {
-        "value": "__apiSuffix__"
-      },
       "cosmosDbEndpoint": {
         "value": "__providerPortalCosmosDbFqdn__"
       },

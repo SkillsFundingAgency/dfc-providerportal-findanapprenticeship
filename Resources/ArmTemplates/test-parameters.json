@@ -14,18 +14,6 @@
       "storageConnectionString": {
         "value": "DefaultEndpointsProtocol=https;AccountName=dfcfooppapprenticestr;AccountKey=this_is_not_a_real_account==;EndpointSuffix=core.windows.net"
       },
-      "apimServiceName": {
-        "value": "dfc-foo-shared-apim"
-      },
-      "apimResourceGroup": {
-        "value": "dfc-test-template-rg"
-      },
-      "apiName": {
-        "value": "myapi"
-      },
-      "apiProductDisplayName": {
-        "value": "Find a course"
-      },
       "cosmosDbEndpoint": {
         "value": "https://providerportal-cosmosdb-endpoint:443/"
       },
