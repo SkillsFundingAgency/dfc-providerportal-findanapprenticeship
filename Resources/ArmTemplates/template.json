@@ -123,6 +123,14 @@
                   "name": "AzureWebJobsStorage",
                   "value": "[parameters('storageConnectionString')]"
                 },
+                { 
+                  "name": "WEBSITE_RUN_FROM_PACKAGE", 
+                  "value": "1" 
+                },
+                {
+                  "name": "FUNCTIONS_WORKER_RUNTIME",
+                  "value": "dotnet"
+                },
                 {
                   "name": "CosmosDbSettings__EndpointUri",
                   "value": "[parameters('cosmosDbEndpoint')]"
@@ -158,7 +166,7 @@
               ]
             },
             "deployStagingSlot": {
-              "value": false
+              "value": true
             }
           }
         }
