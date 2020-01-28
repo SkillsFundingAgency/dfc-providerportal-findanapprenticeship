@@ -59,6 +59,24 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 
 
         }
+        public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn)
+        {
+            Throw.IfNull(ukprn, nameof(ukprn));
+            Throw.IfLessThan(0, ukprn, nameof(ukprn));
+
+            IEnumerable<Apprenticeship> persisted;
+            using (var client = _cosmosDbHelper.GetClient())
+            {
+                await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
+                await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client, _settings.ApprenticeshipCollectionId);
+
+                var docs = _cosmosDbHelper.GetApprenticeshipByUKPRN(client, _settings.ApprenticeshipCollectionId, ukprn);
+                persisted = docs;
+            }
+
+            return persisted;
+        }
+
         public IEnumerable<IDASProvider> ApprenticeshipsToDASProviders(List<Apprenticeship> apprenticeships)
         {
             List<DASProvider> providers = new List<DASProvider>();

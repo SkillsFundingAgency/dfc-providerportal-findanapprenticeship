@@ -13,6 +13,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services
     public interface IApprenticeshipService
     {
         Task<IEnumerable<IApprenticeship>> GetApprenticeshipCollection();
+        Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn);
         IEnumerable<IDASProvider> ApprenticeshipsToDASProviders(List<Apprenticeship> apprenticeships);
     }
 }
