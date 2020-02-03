@@ -7,17 +7,23 @@ using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Dfc.ProviderPortal.Packages;
+using Microsoft.ApplicationInsights;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
     public class DASHelper : IDASHelper
     {
+        private readonly TelemetryClient _telemetryClient;
         private readonly IReferenceDataServiceWrapper _referenceDataServiceWrapper;
         private int _intIdentifier { get; set; }
-        public DASHelper(IReferenceDataServiceWrapper referenceDataServiceWrapper)
+        public DASHelper(TelemetryClient telemetryClient, IReferenceDataServiceWrapper referenceDataServiceWrapper)
         {
+            Throw.IfNull(telemetryClient, nameof(telemetryClient));
             Throw.IfNull(referenceDataServiceWrapper, nameof(referenceDataServiceWrapper));
+
+            _telemetryClient = telemetryClient;
             _referenceDataServiceWrapper = referenceDataServiceWrapper;
             _intIdentifier = 300000;
         }
