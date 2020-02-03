@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddApplicationInsightsTelemetry()
                 .AddMvcCore()
                 .SetCompatibilityVersion(CompatibilityVersion.Latest)
                 .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
