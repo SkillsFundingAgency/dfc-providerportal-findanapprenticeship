@@ -19,11 +19,13 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Services
 {
     public class ApprenticeshipService : IApprenticeshipService
     {
+        private readonly TelemetryClient _telemetryClient;
         private readonly ICosmosDbHelper _cosmosDbHelper;
         private readonly IDASHelper _DASHelper;
         private readonly ICosmosDbCollectionSettings _settings;
@@ -31,16 +33,19 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 
 
         public ApprenticeshipService(
+            TelemetryClient telemetryClient,
             ICosmosDbHelper cosmosDbHelper,
             IDASHelper DASHelper,
             IOptions<CosmosDbCollectionSettings> settings,
             IOptions<ProviderServiceSettings> providerServiceSettings)
         {
+            Throw.IfNull(telemetryClient, nameof(telemetryClient));
             Throw.IfNull(cosmosDbHelper, nameof(cosmosDbHelper));
             Throw.IfNull(DASHelper, nameof(DASHelper));
             Throw.IfNull(settings, nameof(settings));
             Throw.IfNull(providerServiceSettings, nameof(providerServiceSettings));
 
+            _telemetryClient = telemetryClient;
             _cosmosDbHelper = cosmosDbHelper;
             _DASHelper = DASHelper;
             _settings = settings.Value;
