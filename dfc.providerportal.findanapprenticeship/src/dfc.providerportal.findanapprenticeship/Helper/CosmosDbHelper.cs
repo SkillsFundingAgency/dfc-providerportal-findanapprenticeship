@@ -86,6 +86,15 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return new DocumentClient(new Uri(_settings.EndpointUri), _settings.PrimaryKey);
         }
 
+        public DocumentClient GetTcpClient()
+        {
+            return new DocumentClient(new Uri(_settings.EndpointUri), _settings.PrimaryKey, new ConnectionPolicy
+            {
+                ConnectionMode = ConnectionMode.Direct,
+                ConnectionProtocol = Protocol.Tcp
+            });
+        }
+
         public Document GetDocumentById<T>(DocumentClient client, string collectionId, T id)
         {
             Throw.IfNull(client, nameof(client));
