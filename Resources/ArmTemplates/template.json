@@ -61,7 +61,7 @@
         "metadata": {
           "description": "Key to access reference data api via APIM"
         }
-      },
+      }
     },
     "variables": {
       "deploymentUrlBase": "https://raw.githubusercontent.com/SkillsFundingAgency/dfc-devops/master/ArmTemplates/",
