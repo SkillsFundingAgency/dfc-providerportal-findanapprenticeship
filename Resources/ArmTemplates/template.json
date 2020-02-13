@@ -26,37 +26,6 @@
           "description": "Connection string for the storage account to store function app files"
         }
       },
-      "apimServiceName": {
-        "type": "string",
-        "metadata": {
-          "description": "APIM name"
-        }
-      },
-      "apimResourceGroup": {
-        "type": "string",
-        "metadata": {
-          "description": "Resource group where the APIM is located"
-        }
-      },
-      "apiName": {
-        "type": "string",
-        "metadata": {
-          "description": "API name"
-        }
-      },
-      "apiProductDisplayName": {
-        "type": "string",
-        "metadata": {
-          "description": "The display name for the projects APIM product"
-        }
-      },
-      "apiSuffix": {
-        "type": "string",
-        "defaultValue": "",
-        "metadata": {
-          "description": "Suffix uniquely identifying this API and all of its resource paths within APIM, defaults to apiName"
-        }
-      },
       "cosmosDbEndpoint": {
         "type": "string",
         "metadata": {
@@ -69,16 +38,16 @@
           "description": "primary key for the providerportal cosmosb account"
         }
       },
-      "apimKey": {
-        "type": "securestring",
-        "metadata": {
-          "description": "Key to access APIM instances"
-        }
-      },
       "providerApiUrl": {
         "type": "string",
         "metadata": {
           "description": "Url to the provider api"
+        }
+      },
+      "providerApiKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "Key to access provider api via APIM"
         }
       },
       "referenceDataApiUrl": {
@@ -86,7 +55,13 @@
         "metadata": {
           "description": "Url to the reference data api"
         }
-      }
+      },
+      "referenceDataApiKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "Key to access reference data api via APIM"
+        }
+      },
     },
     "variables": {
       "deploymentUrlBase": "https://raw.githubusercontent.com/SkillsFundingAgency/dfc-devops/master/ArmTemplates/",
@@ -155,6 +130,14 @@
                   "value": "[parameters('storageConnectionString')]"
                 },
                 {
+                  "name": "WEBSITE_RUN_FROM_PACKAGE",
+                  "value": "1"
+                },
+                {
+                  "name": "FUNCTIONS_WORKER_RUNTIME",
+                  "value": "dotnet"
+                },
+                {
                   "name": "CosmosDbSettings__EndpointUri",
                   "value": "[parameters('cosmosDbEndpoint')]"
                 },
@@ -176,7 +159,7 @@
                 },
                 {
                   "name": "ProviderServiceSettings__ApiKey",
-                  "value": "[parameters('apimKey')]"
+                  "value": "[parameters('providerApiKey')]"
                 },
                 {
                   "name": "ReferenceDataServiceSettings__ApiUrl",
@@ -184,66 +167,12 @@
                 },
                 {
                   "name": "ReferenceDataServiceSettings_ApiKey",
-                  "value": "[parameters('apimKey')]"
+                  "value": "[parameters('referenceDataApiKey')]"
                 }
               ]
             },
             "deployStagingSlot": {
-              "value": false
-            }
-          }
-        }
-      },
-      {
-        "name": "ppfindapprenticeshipApimProduct",
-        "type": "Microsoft.Resources/deployments",
-        "apiVersion": "2017-05-10",
-        "resourceGroup": "[parameters('apimResourceGroup')]",
-        "properties": {
-          "mode": "Incremental",
-          "templateLink": {
-            "uri": "[concat(variables('deploymentUrlBase'), 'APIM/apim-product.json')]",
-            "contentVersion": "1.0.0.0"
-          },
-          "parameters": {
-            "allowAnonymousAccess": {
-              "value": false
-            },
-            "apimServiceName": {
-              "value": "[parameters('apimServiceName')]"
-            },
-            "productDisplayName": {
-              "value": "[parameters('apiProductDisplayName')]"
-            }
-          }
-        }
-      },
-      {
-        "name": "ppfindapprenticeshipApimApi",
-        "type": "Microsoft.Resources/deployments",
-        "apiVersion": "2017-05-10",
-        "resourceGroup": "[parameters('apimResourceGroup')]",
-        "dependsOn": [
-          "ppfindapprenticeshipApimProduct"
-        ],
-        "properties": {
-          "mode": "Incremental",
-          "templateLink": {
-            "uri": "[concat(variables('deploymentUrlBase'), 'APIM/apim-api.json')]",
-            "contentVersion": "1.0.0.0"
-          },
-          "parameters": {
-            "apimProductInstanceName": {
-              "value": "[reference('ppfindapprenticeshipApimProduct').outputs.ApimProductInstanceName.value]"
-            },
-            "apimServiceName": {
-              "value": "[parameters('apimServiceName')]"
-            },
-            "apiName": {
-              "value": "[parameters('apiName')]"
-            },
-            "apiSuffix": {
-              "value": "[parameters('apiSuffix')]"
+              "value": true
             }
           }
         }
