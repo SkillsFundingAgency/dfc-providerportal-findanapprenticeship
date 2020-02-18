@@ -20,14 +20,17 @@
       "cosmosDbAccountKey": {
         "value": "not-a-real-cosmosdb-account-key"
       },
-      "apimKey": {
-        "value": "not-a-real-apim-key"
-      },
       "providerApiUrl": {
         "value": "https://apim-instance/providers"
       },
+      "providerApiKey": {
+        "value": "not-a-real-apim-key"
+      },
       "referenceDataApiUrl": {
         "value": "https://apim-instance/referencedata"
+      },
+      "referenceDataApiKey": {
+        "value": "not-a-real-apim-key"
       }
     }
   }

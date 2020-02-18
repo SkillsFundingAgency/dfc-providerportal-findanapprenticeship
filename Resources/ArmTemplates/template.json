@@ -38,22 +38,28 @@
           "description": "primary key for the providerportal cosmosb account"
         }
       },
-      "apimKey": {
-        "type": "securestring",
-        "metadata": {
-          "description": "Key to access APIM instances"
-        }
-      },
       "providerApiUrl": {
         "type": "string",
         "metadata": {
           "description": "Url to the provider api"
         }
       },
+      "providerApiKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "Key to access provider api via APIM"
+        }
+      },
       "referenceDataApiUrl": {
         "type": "string",
         "metadata": {
           "description": "Url to the reference data api"
+        }
+      },
+      "referenceDataApiKey": {
+        "type": "securestring",
+        "metadata": {
+          "description": "Key to access reference data api via APIM"
         }
       }
     },
@@ -153,7 +159,7 @@
                 },
                 {
                   "name": "ProviderServiceSettings__ApiKey",
-                  "value": "[parameters('apimKey')]"
+                  "value": "[parameters('providerApiKey')]"
                 },
                 {
                   "name": "ReferenceDataServiceSettings__ApiUrl",
@@ -161,7 +167,7 @@
                 },
                 {
                   "name": "ReferenceDataServiceSettings_ApiKey",
-                  "value": "[parameters('apimKey')]"
+                  "value": "[parameters('referenceDataApiKey')]"
                 }
               ]
             },
