@@ -20,14 +20,17 @@
       "cosmosDbAccountKey": {
         "value": "__providerPortalCosmosDBPrimaryKey__"
       },
-      "apimKey": {
-        "value": "__apimKey__"
-      },
       "providerApiUrl": {
         "value": "__providerApiUrl__"
       },
+      "providerApiKey": {
+        "value": "__ApimPublishCourseDirectoryKey__"
+      },
       "referenceDataApiUrl": {
         "value": "__referenceDataApiUrl__"
+      },
+      "referenceDataApiKey": {
+        "value": "__ApimPublishCourseDirectoryKey__"
       }
     }
   }
