@@ -186,7 +186,19 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 .Where(m => Enum.IsDefined(typeof(DeliveryMode), m))
                 .Select(m => (DeliveryMode) m).ToList();
 
+            if (location.DeliveryModes.Count > validDeliveryModes.Count)
             {
+                var undefinedModes = string.Join(", ", location.DeliveryModes
+                    .Where(m => !Enum.IsDefined(typeof(DeliveryMode), m)));
+
+                var errorMessage = $"Could not map mode(s) \'{undefinedModes}\' to a matching {nameof(DeliveryMode)}";
+
+                var eventProperties = new Dictionary<string, string>();
+                var metrics = new Dictionary<string, double>();
+
+                eventProperties.TryAdd("LocationId", location.LocationId.ToString());
+
+                _telemetryClient.TrackException(new DataMappingException(errorMessage), eventProperties);
             }
 
             return validDeliveryModes
