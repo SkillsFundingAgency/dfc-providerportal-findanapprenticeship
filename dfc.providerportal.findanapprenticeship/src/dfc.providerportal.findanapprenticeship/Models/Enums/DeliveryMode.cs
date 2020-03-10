@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Models.Enums
 {
-    public enum DASDeliveryModes
+    public enum DeliveryMode
     {
         [Display(Name = "Undefined")]
         [Description("Undefined")]
@@ -20,23 +20,5 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.Enums
         [Display(Name = "Block release")]
         [Description("BlockRelease")]
         BlockRelease = 3,
-
     }
-    public enum ApprenticeShipDeliveryLocation
-    {
-        [Display(Name = "Undefined")]
-        [Description("Undefined")]
-        Undefined = 0,
-        [Display(Name = "Day release")]
-        [Description("Day Release")]
-        DayRelease = 1,
-        [Display(Name = "Block release")]
-        [Description("Block Release")]
-        BlockRelease = 2,
-        [Display(Name = "Employer address")]
-        [Description("Employer address")]
-        EmployerAddress = 3
-
-    }
-
 }
