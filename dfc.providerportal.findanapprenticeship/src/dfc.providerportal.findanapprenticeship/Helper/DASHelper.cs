@@ -187,7 +187,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 .Select(m => (DeliveryMode) m).ToList();
 
             {
-                DASList.Add(DASDeliveryModes.EmployerBased.ToDescription());
             }
 
             return validDeliveryModes
