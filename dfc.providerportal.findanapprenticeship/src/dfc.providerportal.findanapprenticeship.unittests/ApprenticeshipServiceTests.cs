@@ -14,9 +14,6 @@ using Microsoft.ApplicationInsights;
 
 namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests
 {
-    /// <summary>
-    /// Unit tests for DAS Helper. Ideally this needs to go away and instead get turned into a bunch of AutoMapper classes!
-    /// </summary>
     public class DasHelperTests : IDisposable
     {
         public DASHelper _dasHelper { get; set; }
@@ -75,8 +72,6 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests
 
     public class ApprenticeshipServiceTests : IDisposable
     {
-        public IEnumerable<Apprenticeship> Apprenticeships { get; set; }
-
         public ApprenticeshipServiceTests()
         {
             // common test scaffolding
@@ -93,24 +88,6 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        public class ApprenticeshipsToDasProvidersTests : IClassFixture<ApprenticeshipServiceTests>
-        {
-            public ApprenticeshipsToDasProvidersTests()
-            {
-
-            }
-
-            public async Task ShouldNotReturnEmptyFrameworksAndStandards()
-            {
-                // arrange
-
-
-                // act
-
-                // assert
-            }
         }
     }
 }
