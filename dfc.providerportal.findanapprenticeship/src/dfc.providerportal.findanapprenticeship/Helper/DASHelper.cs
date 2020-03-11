@@ -27,28 +27,51 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             _referenceDataServiceWrapper = referenceDataServiceWrapper;
             _intIdentifier = 300000;
         }
+
+        [Obsolete("Please don't use this any more, instead replace with a mapper class using something like AutoMapper", false)]
         public DASProvider CreateDASProviderFromProvider(Provider provider)
         {
-            
-            var contactDetails = provider.ProviderContact.FirstOrDefault();
-            var feChoice = _referenceDataServiceWrapper.GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber).FirstOrDefault();
-            return new DASProvider
+            if (!int.TryParse(provider.UnitedKingdomProviderReferenceNumber, out int ukprn))
             {
-                Id = provider.ProviderId ?? GenerateIntIdentifier(),
-                Email = contactDetails?.ContactEmail ?? string.Empty,
-                EmployerSatisfaction = feChoice?.EmployerSatisfaction ?? 0.0,
-                LearnerSatisfaction = feChoice?.LearnerSatisfaction ?? 0.0,
-                MarketingInfo = provider.MarketingInformation ?? string.Empty,
-                Name = provider.ProviderName ?? string.Empty,
-                TradingName = provider.TradingName ?? string.Empty,
-                NationalProvider = provider.NationalApprenticeshipProvider,
-                UKPRN = int.Parse(provider.UnitedKingdomProviderReferenceNumber),
-                Website = contactDetails?.ContactWebsiteAddress ?? string.Empty,
-                Phone = string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) ? contactDetails.ContactTelephone1 : contactDetails.ContactTelephone2
+                throw new DataMappingException("Cannot process a provider without a UKPRN");
+            }
 
-            };
+            if (!provider.ProviderContact.Any())
+            {
+                throw new DataMappingException("Cannot process a provider without contact information");
+            }
 
+            try
+            {
+                var contactDetails = provider.ProviderContact.FirstOrDefault();
+
+                var feChoice = _referenceDataServiceWrapper
+                    .GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber).FirstOrDefault();
+
+                return new DASProvider
+                {
+                    Id = provider.ProviderId ?? GenerateIntIdentifier(),
+                    Email = contactDetails?.ContactEmail ?? string.Empty,
+                    EmployerSatisfaction = feChoice?.EmployerSatisfaction ?? 0.0,
+                    LearnerSatisfaction = feChoice?.LearnerSatisfaction ?? 0.0,
+                    MarketingInfo = provider.MarketingInformation ?? string.Empty,
+                    Name = provider.ProviderName ?? string.Empty,
+                    TradingName = provider.TradingName ?? string.Empty,
+                    NationalProvider = provider.NationalApprenticeshipProvider,
+                    UKPRN = ukprn,
+                    Website = contactDetails?.ContactWebsiteAddress ?? string.Empty,
+                    Phone = string.IsNullOrWhiteSpace(contactDetails?.ContactTelephone1)
+                        ? contactDetails?.ContactTelephone1
+                        : contactDetails?.ContactTelephone2
+                };
+            }
+
+            catch (NullReferenceException e)
+            {
+                throw new DataMappingException($"Provider {ukprn} cannot be mapped to a DAS Provider", e);
+            }
         }
+
         public List<Location> ApprenticeshipLocationsToLocations(IEnumerable<ApprenticeshipLocation> locations)
         {
             List<Location> DASLocations = new List<Location>();
@@ -202,7 +225,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
 
             return validDeliveryModes
-                .Sort()
                 .Select(m => m.ToDescription())
                 .ToList();
         }
