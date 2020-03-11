@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
 {
+    [Obsolete("Please try not to use this any more, and instead create Mapper classes using Automapper or similar", false)]
     public interface IDASHelper
     {
         DASProvider CreateDASProviderFromProvider(Provider provider);

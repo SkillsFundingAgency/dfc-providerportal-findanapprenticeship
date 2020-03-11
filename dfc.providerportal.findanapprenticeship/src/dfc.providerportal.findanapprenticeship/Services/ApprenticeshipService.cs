@@ -2,7 +2,6 @@
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Settings;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
@@ -11,13 +10,10 @@ using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.ProviderPortal.Packages;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 
@@ -61,9 +57,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 
                 return _cosmosDbHelper.GetApprenticeshipCollection(client, _settings.ApprenticeshipCollectionId);
             }
-
-
         }
+
         public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn)
         {
             Throw.IfNull(ukprn, nameof(ukprn));
@@ -82,6 +77,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             return persisted;
         }
 
+        /// <summary>
+        /// Maps apprenticeships to provider(s) ready for export to DAS
+        /// </summary>
+        /// <param name="apprenticeships">A list of apprenticeships to be processed and grouped into Providers</param>
+        /// <returns></returns>
+        [Obsolete("This shouldn't be used any more - if possible replace with a mapping class using something like AutoMapper ", false)]
         public IEnumerable<IDASProvider> ApprenticeshipsToDASProviders(List<Apprenticeship> apprenticeships)
         {
             List<DASProvider> providers = new List<DASProvider>();
@@ -91,29 +92,41 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                                                  .Distinct()
                                                  .ToList();
             foreach (var ukprn in listOfProviderUKPRN)
-            {
+            { 
                 var providerApprenticeships = apprenticeships.Where(x => x.ProviderUKPRN.ToString() == ukprn && x.RecordStatus == RecordStatus.Live).ToList();
 
-                var providerDetailsList = GetProviderDetails(ukprn);
-                if (providerDetailsList != null && providerDetailsList.Count() > 0)
+                var providerDetailsList = GetProviderDetails(ukprn).ToList();
+                if (!providerDetailsList.Any()) continue;
                 {
+                    try
+                    {
+                        var dasProvider = _DASHelper.CreateDASProviderFromProvider(providerDetailsList.FirstOrDefault());
+                        
+                        if (dasProvider != null)
+                        {
+                            var apprenticeshipLocations = providerApprenticeships.Where(x => x.ApprenticeshipLocations != null)
+                                .SelectMany(x => x.ApprenticeshipLocations);
 
-                    var DASProvider = _DASHelper.CreateDASProviderFromProvider(providerDetailsList.FirstOrDefault());
-                    var apprenticeshipLocations = providerApprenticeships.Where(x => x.ApprenticeshipLocations != null)
-                                                 .SelectMany(x => x.ApprenticeshipLocations);
-
-                    DASProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(apprenticeshipLocations.Where(x => x.RecordStatus == RecordStatus.Live));
-                    DASProvider.Standards = _DASHelper.ApprenticeshipsToStandards(providerApprenticeships.Where(x => x.StandardCode.HasValue));
-                    DASProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(providerApprenticeships.Where(x => x.FrameworkCode.HasValue));
-                    providers.Add(DASProvider);
+                            dasProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(apprenticeshipLocations.Where(x => x.RecordStatus == RecordStatus.Live));
+                            dasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(providerApprenticeships.Where(x => x.StandardCode.HasValue));
+                            dasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(providerApprenticeships.Where(x => x.FrameworkCode.HasValue));
+                            providers.Add(dasProvider);
+                        }
+                    }
+                    catch (DataMappingException e)
+                    {
+                        _telemetryClient.TrackException(e);
+                    }
                 }
             }
             return providers;
         }
+
         internal IEnumerable<Provider> GetProviderDetails(string UKPRN)
         {
             return new ProviderServiceWrapper(_providerServiceSettings).GetProviderByUKPRN(UKPRN);
         }
+
         internal IEnumerable<Apprenticeship> OnlyUpdatedCourses(IEnumerable<Apprenticeship> apprenticeships)
         {
             DateTime dateToCheckAgainst = DateTime.Now.Subtract(TimeSpan.FromDays(1));
