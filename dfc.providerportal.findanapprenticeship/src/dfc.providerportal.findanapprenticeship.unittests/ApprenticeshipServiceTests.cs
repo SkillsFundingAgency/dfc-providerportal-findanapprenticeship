@@ -40,6 +40,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+    }
+    
     public class ApprenticeshipServiceTests : IDisposable
     {
         public ApprenticeshipServiceTests()
