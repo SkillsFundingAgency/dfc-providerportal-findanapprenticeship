@@ -53,9 +53,8 @@ steps:
   displayName: dotnet test
   inputs:
     command: test
-    projects: '**/*.csproj'
+    projects: '**/*test*.csproj'
     configuration: ${{ variables.buildConfiguration }}
-    arguments: -c $(BuildConfiguration) -o $(Build.ArtifactStagingDirectory) -r "win10-x64" -f "netcoreapp3.0"
 
 # publish
 - task: DotNetCoreCLI@2
