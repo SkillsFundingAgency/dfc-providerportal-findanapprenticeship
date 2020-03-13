@@ -15,10 +15,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
         public class StripHtmlTags
         {
             private static string _htmlContent =
-                "<div>" +
-                    "<p>some html content with <strong>formatted</strong> text.</p>" +
-                    "<p>Second paragraph.This para has a line break <br /><blockquote>with a quote</blockquote><br /> in the middle</p>" +
-                "</div>";
+                "<p>some html content with <strong>formatted</strong> text.</p>" +
+                "<p>Second paragraph.This para has a line break <br /><blockquote>with a quote</blockquote><br /> in the middle</p>";
 
             [Fact]
             public async Task ShouldRemoveAllHtmlTags()
@@ -31,6 +29,22 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
 
                 // assert
                 Assert.Equal(expected, actual);
+            }
+
+            public class WhenPreserveLineBreaksIsTrue
+            {
+                [Fact]
+                public async Task LineBreaksShouldBePreserved()
+                {
+                    // arrange
+                    var expected = "some html content with formatted text.\r\n\r\nSecond paragraph. This para has a line break \r\n\r\nwith a quote\r\n\r\n in the middle";
+
+                    // act
+                    var actual = HtmlHelper.StripHtmlTags(_htmlContent, true);
+
+                    // assert
+                    Assert.Equal(expected, actual);
+                }
             }
         }
 
