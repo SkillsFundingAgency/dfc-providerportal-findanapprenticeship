@@ -53,7 +53,7 @@ steps:
   displayName: dotnet test
   inputs:
     command: test
-    projects: '**/*.csproj'
+    projects: '**/*test*.csproj'
     configuration: ${{ variables.buildConfiguration }}
 
 # publish

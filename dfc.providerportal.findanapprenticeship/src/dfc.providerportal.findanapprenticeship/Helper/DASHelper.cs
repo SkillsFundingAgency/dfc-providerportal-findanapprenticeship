@@ -202,7 +202,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
 
             return validDeliveryModes
-                .Sort()
                 .Select(m => m.ToDescription())
                 .ToList();
         }
