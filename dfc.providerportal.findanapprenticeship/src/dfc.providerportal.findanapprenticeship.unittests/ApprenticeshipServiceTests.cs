@@ -40,8 +40,36 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        public class ConvertToApprenticeshipDeliveryModesTests : DasHelperTests
+        {
+            private List<string> _validDeliveryModes = Enum.GetValues(typeof(DeliveryMode))
+                    .Cast<DeliveryMode>()
+                    .Select(v => v.ToDescription())
+                    .ToList();
+
+            public ConvertToApprenticeshipDeliveryModesTests()
+            {
+                
+            }
+
+            [Fact]
+            public async Task AllMatchingModesShouldMapCorrectly()
+            {
+                // arrange
+                var expected = _validDeliveryModes;
+                var listOfDeliveryModes = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                var locationToTest = new ApprenticeshipLocation() { DeliveryModes = listOfDeliveryModes };
+
+                // act
+                var actual = _dasHelper.ConvertToApprenticeshipDeliveryModes(locationToTest);
+
+                // assert
+                Assert.Equal(expected, actual);
+            }
+        }
     }
-    
+
     public class ApprenticeshipServiceTests : IDisposable
     {
         public ApprenticeshipServiceTests()

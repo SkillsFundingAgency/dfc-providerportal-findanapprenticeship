@@ -147,7 +147,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
             return apprenticeshipLocations;
         }
-        internal List<LocationRef> CreateLocationRef(IEnumerable<ApprenticeshipLocation> locations)
+        public List<LocationRef> CreateLocationRef(IEnumerable<ApprenticeshipLocation> locations)
         {
             List<LocationRef> locationRefs = new List<LocationRef>();
             var subRegionItemModels = new SelectRegionModel().RegionItems.SelectMany(x => x.SubRegion);
@@ -160,7 +160,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                         locationRefs.Add(new LocationRef
                         {
                             ID = subRegionItemModels.Where(x => x.Id == region).Select(y => y.ApiLocationId.Value).FirstOrDefault(),
-                            DeliveryModes = ConvertToApprenticeshipDeliveryModes(location.DeliveryModes),
+                            DeliveryModes = ConvertToApprenticeshipDeliveryModes(location),
                             Radius = location.Radius ?? 0
                         }) ;
                     }
@@ -170,7 +170,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     locationRefs.Add(new LocationRef
                     {
                         ID = location.LocationId,
-                        DeliveryModes = ConvertToApprenticeshipDeliveryModes(location.DeliveryModes),
+                        DeliveryModes = ConvertToApprenticeshipDeliveryModes(location),
                         Radius = location.Radius ?? 0
                     });
                 }
@@ -179,38 +179,33 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return locationRefs;
 
         }
-        internal List<string> ConvertToApprenticeshipDeliveryModes(List<int> courseDirectoryModes)
-        {
-            List<string> DASList = new List<string>();
-            foreach (var mode in courseDirectoryModes)
-            {
-                switch(mode)
-                {
-                    case (int)ApprenticeShipDeliveryLocation.DayRelease:
-                        {
-                            DASList.Add(DASDeliveryModes.DayRelease.ToDescription());
-                            break;
-                        }
-                    case (int)ApprenticeShipDeliveryLocation.BlockRelease:
-                        {
-                            DASList.Add(DASDeliveryModes.BlockRelease.ToDescription());
-                            break;
-                        }
-                    case (int)ApprenticeShipDeliveryLocation.EmployerAddress:
-                        {
-                            DASList.Add(DASDeliveryModes.EmployerBased.ToDescription());
-                            break;
-                        }
 
-                }
-            }
-            if(courseDirectoryModes.Count == 0)
+        public List<string> ConvertToApprenticeshipDeliveryModes(ApprenticeshipLocation location)
+        {
+            var validDeliveryModes = location.DeliveryModes
+                .Where(m => Enum.IsDefined(typeof(DeliveryMode), m))
+                .Select(m => (DeliveryMode) m).ToList();
+
+            if (location.DeliveryModes.Count > validDeliveryModes.Count)
             {
-                DASList.Add(DASDeliveryModes.EmployerBased.ToDescription());
+                var undefinedModes = string.Join(", ", location.DeliveryModes
+                    .Where(m => !Enum.IsDefined(typeof(DeliveryMode), m)));
+
+                var errorMessage = $"Could not map mode(s) \'{undefinedModes}\' to a matching {nameof(DeliveryMode)}";
+
+                var eventProperties = new Dictionary<string, string>();
+                var metrics = new Dictionary<string, double>();
+
+                eventProperties.TryAdd("LocationId", location.LocationId.ToString());
+
+                _telemetryClient.TrackException(new DataMappingException(errorMessage), eventProperties);
             }
-            DASList.Sort();
-            return DASList;
+
+            return validDeliveryModes
+                .Select(m => m.ToDescription())
+                .ToList();
         }
+
         internal int GenerateIntIdentifier()
         {
             return _intIdentifier++;
