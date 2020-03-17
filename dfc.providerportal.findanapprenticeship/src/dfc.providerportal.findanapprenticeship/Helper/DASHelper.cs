@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Dfc.ProviderPortal.Packages;
 using Microsoft.ApplicationInsights;
+using Newtonsoft.Json;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
@@ -18,6 +19,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         private readonly TelemetryClient _telemetryClient;
         private readonly IReferenceDataServiceWrapper _referenceDataServiceWrapper;
         private int _intIdentifier { get; set; }
+
         public DASHelper(TelemetryClient telemetryClient, IReferenceDataServiceWrapper referenceDataServiceWrapper)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));
@@ -69,7 +71,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                             Address = location.Address ?? null,
                             Email = location.Address != null ? location.Address.Email : string.Empty,
                             Name = location.Name,
-                            Phone = location.Phone,
+                            Phone = location.Address != null ? location.Address.Phone : location.Phone,
                             Website = location.Address != null ? location.Address.Website : string.Empty
                         });
                     }
