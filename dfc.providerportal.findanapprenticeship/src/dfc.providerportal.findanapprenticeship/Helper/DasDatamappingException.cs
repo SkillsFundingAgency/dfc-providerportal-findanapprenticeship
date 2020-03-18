@@ -21,7 +21,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
     public class ProviderExportException : ExportException
     {
-        public ProviderExportException(int id, Exception inner)
+        public ProviderExportException(string id, Exception inner)
             : base($"Error exporting provider {id} to DAS", inner)
         {
         }
