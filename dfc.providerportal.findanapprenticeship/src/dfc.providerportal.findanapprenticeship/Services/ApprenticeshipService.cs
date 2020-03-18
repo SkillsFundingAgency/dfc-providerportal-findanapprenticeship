@@ -14,8 +14,10 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Services
 {
@@ -88,38 +90,96 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             List<DASProvider> providers = new List<DASProvider>();
             List<string> listOfProviderUKPRN = new List<string>();
 
+            var eventProperties = new Dictionary<string, string>();
+            var metrics = new Dictionary<string, double>();
+
+            var evt = new EventTelemetry();
+            evt.Name = "ExportToDas";
+
             listOfProviderUKPRN = apprenticeships.Select(x => x.ProviderUKPRN.ToString())
                                                  .Distinct()
                                                  .ToList();
+
             foreach (var ukprn in listOfProviderUKPRN)
-            { 
-                var providerApprenticeships = apprenticeships.Where(x => x.ProviderUKPRN.ToString() == ukprn && x.RecordStatus == RecordStatus.Live).ToList();
+            {
+                int success = 0, failure = 0;
 
-                var providerDetailsList = GetProviderDetails(ukprn).ToList();
-                if (!providerDetailsList.Any()) continue;
+                try
                 {
-                    try
-                    {
-                        var dasProvider = _DASHelper.CreateDASProviderFromProvider(providerDetailsList.FirstOrDefault());
-                        
-                        if (dasProvider != null)
-                        {
-                            var apprenticeshipLocations = providerApprenticeships.Where(x => x.ApprenticeshipLocations != null)
-                                .SelectMany(x => x.ApprenticeshipLocations);
+                    var providerApprenticeships = apprenticeships
+                        .Where(x => x.ProviderUKPRN.ToString() == ukprn && x.RecordStatus == RecordStatus.Live)
+                        .ToList();
+                    var provider = ExportProvider(providerApprenticeships, ukprn);
 
-                            dasProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(apprenticeshipLocations.Where(x => x.RecordStatus == RecordStatus.Live));
-                            dasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(providerApprenticeships.Where(x => x.StandardCode.HasValue));
-                            dasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(providerApprenticeships.Where(x => x.FrameworkCode.HasValue));
-                            providers.Add(dasProvider);
-                        }
-                    }
-                    catch (DataMappingException e)
-                    {
-                        _telemetryClient.TrackException(e);
-                    }
+                    providers.Add(provider);
+                    success++;
+                }
+                catch (Exception e)
+                {
+                    failure++;
+                    _telemetryClient.TrackException(e);
+                }
+                finally
+                {
+                    metrics.Add("Export success", success);
+                    metrics.Add("Export failures", failure);
+                    _telemetryClient.TrackEvent(evt);
                 }
             }
+
             return providers;
+        }
+
+        private DASProvider ExportProvider(List<Apprenticeship> apprenticeships, string ukprn)
+        {
+            var eventProperties = new Dictionary<string, string>();
+            var metrics = new Dictionary<string, double>();
+
+            var evt = new EventTelemetry();
+            evt.Name = "ExportProvider";
+
+            eventProperties.TryAdd("UKPRN", ukprn);
+            metrics.TryAdd("Apprenticeships", apprenticeships.Count());
+
+            var providerDetailsList = GetProviderDetails(ukprn).ToList();
+            metrics.TryAdd("MatchingProviders", providerDetailsList.Count());
+
+            if (providerDetailsList.Any())
+            {
+                try
+                {
+                    var dasProvider = _DASHelper.CreateDASProviderFromProvider(providerDetailsList.FirstOrDefault());
+
+                    if (dasProvider != null)
+                    {
+                        var apprenticeshipLocations = apprenticeships.Where(x => x.ApprenticeshipLocations != null)
+                            .SelectMany(x => x.ApprenticeshipLocations).Distinct();
+
+                        var exportLocations = apprenticeshipLocations.Where(x => x.RecordStatus == RecordStatus.Live);
+                        var exportStandards = apprenticeships.Where(x => x.StandardCode.HasValue);
+                        var exportFrameworks = apprenticeships.Where(x => x.FrameworkCode.HasValue);
+
+                        metrics.TryAdd("Locations", exportLocations.Count());
+                        metrics.TryAdd("Standards", exportStandards.Count());
+                        metrics.TryAdd("Frameworks", exportFrameworks.Count());
+
+                        dasProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(exportLocations);
+                        dasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(exportStandards);
+                        dasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(exportFrameworks);
+
+                        _telemetryClient.TrackEvent(evt);
+
+                        return dasProvider;
+                    }
+                }
+                catch (Exception e)
+                {
+                    _telemetryClient.TrackException(e, eventProperties, metrics);
+                    throw new ProviderExportException(ukprn, e);
+                }
+            }
+
+            throw new ProviderNotFoundException(ukprn);
         }
 
         internal IEnumerable<Provider> GetProviderDetails(string UKPRN)
