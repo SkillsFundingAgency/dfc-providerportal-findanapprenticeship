@@ -2,19 +2,88 @@
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
-    public class DataMappingException : Exception
+    public class ExportException : Exception
     {
-        public DataMappingException()
+        public ExportException()
         {
         }
 
-        public DataMappingException(string message)
+        public ExportException(string message)
             : base(message)
         {
         }
 
-        public DataMappingException(string message, Exception inner)
+        public ExportException(string message, Exception inner)
             : base(message, inner)
+        {
+        }
+    }
+
+    public class ProviderExportException : ExportException
+    {
+        public ProviderExportException(int id, Exception inner)
+            : base($"Error exporting provider {id} to DAS", inner)
+        {
+        }
+    }
+
+    public class LocationExportException : ExportException
+    {
+        public LocationExportException(string id)
+            : base($"Error exporting location {id} to DAS")
+        {
+        }
+
+        public LocationExportException(string id, Exception inner)
+            : base($"Error exporting location {id} to DAS", inner)
+        {
+        }
+    }
+
+    public class StandardExportException : ExportException
+    {
+        public StandardExportException(string id, Exception inner)
+            : base($"Error exporting standard {id} to DAS", inner)
+        {
+        }
+    }
+
+    public class FrameworkExportException : ExportException
+    {
+        public FrameworkExportException(string id, Exception inner)
+            : base($"Error exporting framework {id} to DAS", inner)
+        {
+        }
+    }
+
+    public class ProviderNotFoundException : ExportException
+    {
+        public ProviderNotFoundException(string id)
+            : base($"Could not find provider details for UKPRN {id}")
+        {
+        }
+    }
+
+    public class InvalidUkprnException : ExportException
+    {
+        public InvalidUkprnException(string id)
+            : base($"Provider UKPRN missing or invalid")
+        {
+        }
+    }
+
+    public class MissingContactException : ExportException
+    {
+        public MissingContactException()
+            : base($"Cannot process a provider without contact information")
+        {
+        }
+    }
+
+    public class FeChoicesException : ExportException
+    {
+        public FeChoicesException(string id, Exception e)
+            : base($"Could not find FE Choices data for UKPRN {id}", e)
         {
         }
     }
