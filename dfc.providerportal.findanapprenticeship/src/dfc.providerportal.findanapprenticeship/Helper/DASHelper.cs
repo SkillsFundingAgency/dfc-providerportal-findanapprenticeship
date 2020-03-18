@@ -35,12 +35,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         {
             if (!int.TryParse(provider.UnitedKingdomProviderReferenceNumber, out int ukprn))
             {
-                throw new DataMappingException("Cannot process a provider without a UKPRN");
+                throw new InvalidUkprnException(provider.UnitedKingdomProviderReferenceNumber);
             }
 
             if (!provider.ProviderContact.Any())
             {
-                throw new DataMappingException("Cannot process a provider without contact information");
+                throw new MissingContactException();
             }
 
             try
@@ -68,9 +68,9 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 };
             }
 
-            catch (NullReferenceException e)
+            catch (Exception e)
             {
-                throw new DataMappingException($"Provider {ukprn} cannot be mapped to a DAS Provider", e);
+                throw new ProviderExportException(ukprn, e);
             }
         }
 
@@ -223,7 +223,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
                 eventProperties.TryAdd("LocationId", location.LocationId.ToString());
 
-                _telemetryClient.TrackException(new DataMappingException(errorMessage), eventProperties);
+                _telemetryClient.TrackException(new LocationExportException(location.Id.ToString()), eventProperties);
             }
 
             return validDeliveryModes
