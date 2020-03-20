@@ -113,7 +113,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 {
                     FrameworkCode = apprenticeship.FrameworkCode.Value,
                     FrameworkInfoUrl = apprenticeship.Url,
-                    MarketingInfo = apprenticeship.MarketingInformation,
+                    MarketingInfo = HtmlHelper.StripHtmlTags(apprenticeship.MarketingInformation, true),
                     PathwayCode = apprenticeship.PathwayCode ?? (int?)null,
                     ProgType = apprenticeship.ProgType ?? (int?)null,
                     Contact = new Contact
