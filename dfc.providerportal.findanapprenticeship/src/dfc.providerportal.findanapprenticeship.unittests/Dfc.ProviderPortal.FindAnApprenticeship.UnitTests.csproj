@@ -22,4 +22,13 @@
     <ProjectReference Include="..\dfc.providerportal.findanapprenticeship\Dfc.Providerportal.FindAnApprenticeship.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestData\Location\Locations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\Provider\Providers.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -28,7 +28,4 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
-  <Target Name="CopyAzureFunctionOutput" AfterTargets="_GenerateFunctionsPostBuild" Condition="'$(NCrunch)' == '1'">
-    <Exec Command="xcopy /y &quot;$(OutDir)\bin&quot; &quot;$(OutDir)&quot;" />
-  </Target>
 </Project>
