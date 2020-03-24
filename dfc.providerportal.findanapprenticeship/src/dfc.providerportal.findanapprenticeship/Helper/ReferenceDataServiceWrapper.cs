@@ -38,36 +38,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         {
             try
             {
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _settings.ApiKey);
-                var response = client.GetAsync($"{_settings.ApiUrl}{UKPRN}").Result;
-
-                response.EnsureSuccessStatusCode();
-
-                var json = response.Content.ReadAsStringAsync().Result;
-
-                if (string.IsNullOrWhiteSpace(json) || json.StartsWith("null"))
-                {
-                    return new FeChoice
-                    {
-                        UKPRN = int.Parse(UKPRN),
-                        EmployerSatisfaction = null,
-                        LearnerSatisfaction = null,
-                        CreatedDateTimeUtc = DateTime.UtcNow
-                    };
-                }
-
-                if (!json.StartsWith("["))
-                    json = "[" + json + "]";
-
-                var feChoicesResult = JsonConvert.DeserializeObject<IEnumerable<FeChoice>>(json);
-                var latestScore = feChoicesResult.OrderByDescending(f => f.CreatedDateTimeUtc).FirstOrDefault();
-                return latestScore;
-            }
-            catch (HttpRequestException e)
-            {
-                // add polly retry
-                throw new ReferenceDataServiceException(UKPRN, e);
+                var validUkprn = int.Parse(UKPRN);
+                return this.GetAllFeChoiceData().SingleOrDefault(x => x.UKPRN == validUkprn);
             }
             catch (Exception e)
             {
@@ -97,7 +69,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         private IEnumerable<FeChoice> PopulateFeChoicesCache()
         {
-            Console.WriteLine($"[{DateTime.UtcNow:u}] Refreshing FeChoices cache");
+            Console.WriteLine($"[{DateTime.UtcNow:G}] Cache missing or expired... Refreshing FeChoices cache");
 
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _settings.ApiKey);
@@ -108,7 +80,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             var json = response.Content.ReadAsStringAsync().Result;
             List<FeChoice> feChoices = JsonConvert.DeserializeObject<IEnumerable<FeChoice>>(json).ToList();
             
-            Console.WriteLine($"[{DateTime.UtcNow:u}] Loaded {feChoices.Count} FE Choices to cache");
+            Console.WriteLine($"[{DateTime.UtcNow:G}] Loaded {feChoices.Count} FE Choices to cache");
 
             return feChoices;
         }
