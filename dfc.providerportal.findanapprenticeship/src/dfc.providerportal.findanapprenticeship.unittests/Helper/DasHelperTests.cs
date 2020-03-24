@@ -76,7 +76,10 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
             {
                 // Arrange
                 var contactDetails = provider.ProviderContact.FirstOrDefault();
-                var expected = string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) ? contactDetails.ContactTelephone1 : contactDetails.ContactTelephone2;
+                var expected = 
+                    !string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) 
+                        ? contactDetails.ContactTelephone1 
+                        : contactDetails.ContactTelephone2;
 
                 // Act
                 var result = _sut.CreateDASProviderFromProvider(provider);
