@@ -24,12 +24,11 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
         {
             List<Apprenticeship> persisted = null;
 
-
             try
             {
                 Console.WriteLine($"[{DateTime.UtcNow:G}] Retrieving Apprenticeships...");
                 
-                persisted = (List<Apprenticeship>)await apprenticeshipService.GetApprenticeshipCollection();
+                persisted = (List<Apprenticeship>)await apprenticeshipService.GetLiveApprenticeships();
                 if (persisted == null)
                     return new EmptyResult();
                 var providers = apprenticeshipService.ApprenticeshipsToDASProviders(persisted);

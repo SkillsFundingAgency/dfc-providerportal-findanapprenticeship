@@ -296,6 +296,18 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return client.CreateDocumentQuery<Apprenticeship>(uri, options).ToList();
             
         }
+
+        public List<Apprenticeship> GetLiveApprenticeships(DocumentClient client, string collectionId)
+        {
+            Uri uri = UriFactory.CreateDocumentCollectionUri(_settings.DatabaseId, collectionId);
+            FeedOptions options = new FeedOptions { EnableCrossPartitionQuery = true, MaxItemCount = -1 };
+
+            return client.CreateDocumentQuery<Apprenticeship>(uri, options)
+                .Where(x => x.RecordStatus == RecordStatus.Live)
+                .ToList();
+
+        }
+
         internal static List<string> FormatSearchTerm(string searchTerm)
         {
             Throw.IfNullOrWhiteSpace(searchTerm, nameof(searchTerm));
