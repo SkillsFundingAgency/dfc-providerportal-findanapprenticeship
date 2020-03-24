@@ -80,9 +80,22 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         }
     }
 
-    public class FeChoicesException : ExportException
+    public class ReferenceDataServiceException : Exception
     {
-        public FeChoicesException(string id, Exception e)
+        public ReferenceDataServiceException(Exception e)
+            : base($"Reference data error.", e)
+        {
+        }
+
+        public ReferenceDataServiceException(string id, Exception e)
+            : base($"Could not find FE Choices data for UKPRN {id}", e)
+        {
+        }
+    }
+
+    public class ProviderServiceException : Exception
+    {
+        public ProviderServiceException(string id, Exception e)
             : base($"Could not find FE Choices data for UKPRN {id}", e)
         {
         }

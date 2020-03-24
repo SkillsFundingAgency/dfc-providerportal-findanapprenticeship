@@ -9,6 +9,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
     public interface ICosmosDbHelper
     {
         DocumentClient GetClient();
+        DocumentClient GetTcpClient();
+
         Task<Database> CreateDatabaseIfNotExistsAsync(DocumentClient client);
         Task<DocumentCollection> CreateDocumentCollectionIfNotExistsAsync(DocumentClient client, string collectionId);
         Task<Document> CreateDocumentAsync(DocumentClient client, string collectionId, object document);
