@@ -102,7 +102,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
             public void DisplaysTheCorrectPhoneNumber(ApprenticeshipLocation location)
             {
                 // Arrange
-                var expected = location.Address != null ? location.Address.Phone : location.Phone;
+                var expected = location.Phone;
 
                 // Act
                 var locationsList = new List<ApprenticeshipLocation> { location };

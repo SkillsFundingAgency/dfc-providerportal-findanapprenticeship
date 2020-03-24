@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
+﻿namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface IAddress
     {
@@ -12,20 +8,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 
         string County { get; set; }
 
-        string Email { get; set; }
-
         double? Latitude { get; set; }
 
         double? Longitude { get; set; }
 
-        string Phone { get; set; }
-
         string Postcode { get; set; }
 
         string Town { get; set; }
-
-        string Website { get; set; }
-
-
     }
 }
