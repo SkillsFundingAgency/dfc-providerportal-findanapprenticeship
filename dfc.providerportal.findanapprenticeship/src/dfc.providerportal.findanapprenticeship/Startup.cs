@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using LazyCache;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship
                 .SetCompatibilityVersion(CompatibilityVersion.Latest)
                 .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
                 .AddApiExplorer();
+
+            services.AddLazyCache();
 
             services.AddSwaggerGen(c =>
             {

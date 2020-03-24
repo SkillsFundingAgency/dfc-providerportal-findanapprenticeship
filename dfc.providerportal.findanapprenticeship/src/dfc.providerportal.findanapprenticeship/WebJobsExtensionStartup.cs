@@ -28,6 +28,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship
                 .AddEnvironmentVariables()
                 .Build();
 
+            builder.Services.AddLazyCache();
+
             builder.Services.AddSingleton<IConfiguration>(configuration);
             builder.Services.Configure<CosmosDbSettings>(configuration.GetSection(nameof(CosmosDbSettings)));
             builder.Services.Configure<CosmosDbCollectionSettings>(configuration.GetSection(nameof(CosmosDbCollectionSettings)));

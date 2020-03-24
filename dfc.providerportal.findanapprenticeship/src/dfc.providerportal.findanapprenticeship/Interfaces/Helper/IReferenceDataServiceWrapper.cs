@@ -7,6 +7,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
 {
     public interface IReferenceDataServiceWrapper
     {
-        IEnumerable<FeChoice> GetFeChoicesByUKPRN(string UKPRN);
+        IEnumerable<FeChoice> GetAllFeChoiceData();
+
+        FeChoice GetFeChoicesByUKPRN(string UKPRN);
     }
 }
