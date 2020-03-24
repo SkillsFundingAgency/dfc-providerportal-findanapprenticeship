@@ -11,10 +11,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
     public class ProviderServiceWrapper : IProviderServiceWrapper
     {
         private readonly IProviderServiceSettings _settings;
-        public ProviderServiceWrapper(IProviderServiceSettings settings)
+
+        public ProviderServiceWrapper(IOptions<ProviderServiceSettings> settings)
         {
             Throw.IfNull(settings, nameof(settings));
-            _settings = settings;
+            
+            _settings = settings.Value;
         }
         public IEnumerable<Provider> GetProviderByUKPRN(string UKPRN)
         {

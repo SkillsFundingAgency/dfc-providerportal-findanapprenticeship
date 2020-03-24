@@ -10,6 +10,7 @@ using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using Microsoft.Extensions.Logging;
 
 [assembly: WebJobsStartup(typeof(WebJobsExtensionStartup), "Web Jobs Extension Startup")]
 
@@ -32,7 +33,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship
             builder.Services.Configure<CosmosDbCollectionSettings>(configuration.GetSection(nameof(CosmosDbCollectionSettings)));
             builder.Services.Configure<ProviderServiceSettings>(configuration.GetSection(nameof(ProviderServiceSettings)));
             builder.Services.Configure<ReferenceDataServiceSettings>(configuration.GetSection(nameof(ReferenceDataServiceSettings)));
-            builder.Services.AddScoped<IReferenceDataServiceWrapper, ReferenceDataServiceWrapper>();
+            builder.Services.AddSingleton<IReferenceDataServiceWrapper, ReferenceDataServiceWrapper>();
+            builder.Services.AddSingleton<IProviderServiceWrapper, ProviderServiceWrapper>();
             builder.Services.AddScoped<ICosmosDbHelper, CosmosDbHelper>();
             builder.Services.AddScoped<IDASHelper, DASHelper>();
             builder.Services.AddScoped<IApprenticeshipService, ApprenticeshipService>();
