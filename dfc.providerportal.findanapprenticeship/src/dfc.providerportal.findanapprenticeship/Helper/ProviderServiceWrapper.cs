@@ -5,6 +5,8 @@ using Dfc.ProviderPortal.Packages;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net.Http;
+using Dfc.Providerportal.FindAnApprenticeship.Settings;
+using Microsoft.Extensions.Options;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {

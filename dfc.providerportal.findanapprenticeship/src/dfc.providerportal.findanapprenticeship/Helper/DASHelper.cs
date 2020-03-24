@@ -48,7 +48,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 var contactDetails = provider.ProviderContact.FirstOrDefault();
 
                 var feChoice = _referenceDataServiceWrapper
-                    .GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber).FirstOrDefault();
+                    .GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber);
 
                 return new DASProvider
                 {
@@ -70,7 +70,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             catch (Exception e)
             {
-                throw new ProviderExportException(ukprn, e);
+                throw new ProviderExportException(ukprn.ToString(), e);
             }
         }
 
