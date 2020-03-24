@@ -27,7 +27,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 
             try
             {
-                Console.WriteLine($"[{DateTime.UtcNow:u}] Retrieving Apprenticeships...");
+                Console.WriteLine($"[{DateTime.UtcNow:G}] Retrieving Apprenticeships...");
                 
                 persisted = (List<Apprenticeship>)await apprenticeshipService.GetApprenticeshipCollection();
                 if (persisted == null)
