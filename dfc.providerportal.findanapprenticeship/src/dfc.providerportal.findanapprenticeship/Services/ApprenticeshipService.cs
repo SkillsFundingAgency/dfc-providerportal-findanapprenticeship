@@ -26,6 +26,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         private readonly TelemetryClient _telemetryClient;
         private readonly ICosmosDbHelper _cosmosDbHelper;
         private readonly IDASHelper _DASHelper;
+        private readonly IProviderServiceWrapper _providerService;
         private readonly ICosmosDbCollectionSettings _settings;
         private readonly IProviderServiceSettings _providerServiceSettings;
 
@@ -35,17 +36,19 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             ICosmosDbHelper cosmosDbHelper,
             IDASHelper DASHelper,
             IOptions<CosmosDbCollectionSettings> settings,
-            IOptions<ProviderServiceSettings> providerServiceSettings)
+            IOptions<ProviderServiceSettings> providerServiceSettings, IProviderServiceWrapper providerService)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));
             Throw.IfNull(cosmosDbHelper, nameof(cosmosDbHelper));
             Throw.IfNull(DASHelper, nameof(DASHelper));
+            Throw.IfNull(providerService, nameof(providerService));
             Throw.IfNull(settings, nameof(settings));
             Throw.IfNull(providerServiceSettings, nameof(providerServiceSettings));
 
             _telemetryClient = telemetryClient;
             _cosmosDbHelper = cosmosDbHelper;
             _DASHelper = DASHelper;
+            _providerService = providerService;
             _settings = settings.Value;
             _providerServiceSettings = providerServiceSettings.Value;
         }
@@ -184,7 +187,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 
         internal IEnumerable<Provider> GetProviderDetails(string UKPRN)
         {
-            return new ProviderServiceWrapper(_providerServiceSettings).GetProviderByUKPRN(UKPRN);
+            return _providerService.GetProviderByUKPRN(UKPRN);
         }
 
         internal IEnumerable<Apprenticeship> OnlyUpdatedCourses(IEnumerable<Apprenticeship> apprenticeships)
