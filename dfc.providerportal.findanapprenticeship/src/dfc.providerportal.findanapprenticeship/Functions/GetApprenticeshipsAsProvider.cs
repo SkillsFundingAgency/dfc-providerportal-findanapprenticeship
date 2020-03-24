@@ -27,12 +27,14 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 
             try
             {
+                Console.WriteLine($"[{DateTime.UtcNow:u}] Retrieving Apprenticeships...");
+                
                 persisted = (List<Apprenticeship>)await apprenticeshipService.GetApprenticeshipCollection();
                 if (persisted == null)
                     return new EmptyResult();
                 var providers = apprenticeshipService.ApprenticeshipsToDASProviders(persisted);
+                
                 return new OkObjectResult(providers);
-
             } 
             catch (Exception e)
             {

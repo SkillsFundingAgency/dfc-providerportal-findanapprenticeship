@@ -55,7 +55,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 
         public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipCollection()
         {
-            using (var client = _cosmosDbHelper.GetClient())
+            using (var client = _cosmosDbHelper.GetTcpClient())
             {
                 await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
                 await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client, _settings.ApprenticeshipCollectionId);
@@ -70,7 +70,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             Throw.IfLessThan(0, ukprn, nameof(ukprn));
 
             IEnumerable<Apprenticeship> persisted;
-            using (var client = _cosmosDbHelper.GetClient())
+            using (var client = _cosmosDbHelper.GetTcpClient())
             {
                 await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
                 await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client, _settings.ApprenticeshipCollectionId);
