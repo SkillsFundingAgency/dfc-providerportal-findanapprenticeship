@@ -8,5 +8,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Settings
     {
         string ApiUrl { get; set; }
         string ApiKey { get; set; }
+        int MinutesToCache { get; set; }
     }
 }
