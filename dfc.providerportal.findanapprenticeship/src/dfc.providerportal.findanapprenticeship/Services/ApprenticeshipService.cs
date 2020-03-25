@@ -27,10 +27,9 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         private readonly TelemetryClient _telemetryClient;
         private readonly ICosmosDbHelper _cosmosDbHelper;
         private readonly IDASHelper _DASHelper;
-        private readonly IProviderServiceWrapper _providerService;
         private readonly ICosmosDbCollectionSettings _cosmosSettings;
         private readonly IProviderServiceSettings _providerServiceSettings;
-
+        private readonly IProviderServiceWrapper _providerService;
 
         public ApprenticeshipService(
             TelemetryClient telemetryClient,
