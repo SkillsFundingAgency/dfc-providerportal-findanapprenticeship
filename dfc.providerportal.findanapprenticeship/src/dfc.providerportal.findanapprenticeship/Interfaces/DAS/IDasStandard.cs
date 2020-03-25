@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
-    public interface IStandard
+    public interface IDasStandard
     {
-        IContact Contact { get; set; }
+        IDasContact DasContact { get; set; }
 
-        List<LocationRef> Locations { get; set; }
+        List<DasLocationRef> Locations { get; set; }
         string MarketingInfo { get; set; }
         int StandardCode { get; set; }
         string StandardInfoUrl { get; set; }

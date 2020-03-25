@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
 {
-    public class Standard : IStandard
+    public class DasStandard : IDasStandard
     {
         public int StandardCode { get; set; }
         public string MarketingInfo { get; set; }
         public string StandardInfoUrl { get; set; }
-        public IContact Contact { get; set; }
-        public List<LocationRef> Locations { get; set; }
+        public IDasContact DasContact { get; set; }
+        public List<DasLocationRef> Locations { get; set; }
       
         
         

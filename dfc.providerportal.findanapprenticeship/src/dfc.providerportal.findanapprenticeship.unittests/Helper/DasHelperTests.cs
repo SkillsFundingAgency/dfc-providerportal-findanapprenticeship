@@ -61,11 +61,11 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
             }
         }
 
-        public class CreateDASProviderFromProvider : IClassFixture<DasHelperFixture>
+        public class CreateDasProviderFromProvider : IClassFixture<DasHelperFixture>
         {
             private DASHelper _sut;
 
-            public CreateDASProviderFromProvider(DasHelperFixture fixture)
+            public CreateDasProviderFromProvider(DasHelperFixture fixture)
             {
                 _sut = fixture.Sut;
             }
@@ -82,7 +82,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
                         : contactDetails.ContactTelephone2;
 
                 // Act
-                var result = _sut.CreateDASProviderFromProvider(provider);
+                var result = _sut.CreateDasProviderFromProvider(provider);
                 var actual = result.Phone;
 
                 // Assert

@@ -2,7 +2,7 @@
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
 {
-    public class Address : IAddress
+    public class DasAddress : IDasAddress
     {
         public string Address1 { get; set; }
 
@@ -17,5 +17,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
         public string Postcode { get; set; }
 
         public string Town { get; set; }
+
     }
 }

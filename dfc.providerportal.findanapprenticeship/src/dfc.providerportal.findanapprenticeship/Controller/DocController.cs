@@ -14,7 +14,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Controller
     {
         [Route("GetApprenticeshipsAsProvider")]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<DASProvider>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<DasProvider>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -25,7 +25,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Controller
 
         [Route("GetApprenticeshipsAsProviderByUkprn")]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<DASProvider>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<DasProvider>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

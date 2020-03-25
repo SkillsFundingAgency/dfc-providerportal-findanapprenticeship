@@ -2,7 +2,7 @@
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
 {
-    public class Contact : IContact
+    public class DasContact : IDasContact
     {
         public string ContactUsUrl { get; set; }
         public string Email { get; set; }

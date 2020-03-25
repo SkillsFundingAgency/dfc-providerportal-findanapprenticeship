@@ -33,7 +33,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                 var persisted = (List<Apprenticeship>)await apprenticeshipService.GetApprenticeshipsByUkprn(ukprn);
                 if (persisted == null)
                     return new EmptyResult();
-                var providers = apprenticeshipService.ApprenticeshipsToDASProviders(persisted);
+                var providers = apprenticeshipService.ApprenticeshipsToDasProviders(persisted);
                 return new OkObjectResult(providers);
 
             }

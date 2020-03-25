@@ -1,6 +1,6 @@
 ﻿namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
-    public interface IAddress
+    public interface IDasAddress
     {
         string Address1 { get; set; }
 

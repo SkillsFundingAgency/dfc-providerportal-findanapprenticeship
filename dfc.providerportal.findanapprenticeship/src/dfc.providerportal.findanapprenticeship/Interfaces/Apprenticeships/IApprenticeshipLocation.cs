@@ -1,5 +1,5 @@
 ﻿using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
-using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
+using Dfc.Providerportal.FindAnApprenticeship.Models;
 using System;
 using System.Collections.Generic;
 
