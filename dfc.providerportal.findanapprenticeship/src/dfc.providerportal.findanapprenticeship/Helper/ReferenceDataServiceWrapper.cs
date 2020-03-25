@@ -4,7 +4,6 @@ using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.ProviderPortal.Packages;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,20 +17,25 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
     // TODO: Polly Polly Polly!
     public class ReferenceDataServiceWrapper : IReferenceDataServiceWrapper
     {
+        private readonly IReferenceDataService _client;
         private readonly IAppCache _cache;
         private readonly TelemetryClient _telemetryClient;
         private readonly IReferenceDataServiceSettings _settings;
         public ReferenceDataServiceWrapper(
             TelemetryClient telemetryClient, 
             IOptions<ReferenceDataServiceSettings> settings, 
-            IAppCache cache)
+            IAppCache cache,
+            IReferenceDataService client)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));
             Throw.IfNull(settings, nameof(settings));
+            Throw.IfNull(cache, nameof(cache));
+            Throw.IfNull(client, nameof(client));
 
             _telemetryClient = telemetryClient;
-            _cache = cache;
             _settings = settings.Value;
+            _cache = cache;
+            _client = client;
         }
 
         public FeChoice GetFeChoicesByUKPRN(string UKPRN)
@@ -49,7 +53,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         public IEnumerable<FeChoice> GetAllFeChoiceData()
         {
-            Func<IEnumerable<FeChoice>> feChoicesGetter = () => PopulateFeChoicesCache();
+            Func<IEnumerable<FeChoice>> feChoicesGetter = () => _client.GetAllFeChoices();
 
             try
             {
@@ -64,25 +68,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             {
                 throw new ReferenceDataServiceException(e);
             }
-        }
-
-
-        private IEnumerable<FeChoice> PopulateFeChoicesCache()
-        {
-            Console.WriteLine($"[{DateTime.UtcNow:G}] Cache missing or expired... Refreshing FeChoices cache");
-
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _settings.ApiKey);
-            var response = client.GetAsync($"{_settings.ApiUrl}").Result;
-
-            response.EnsureSuccessStatusCode();
-
-            var json = response.Content.ReadAsStringAsync().Result;
-            List<FeChoice> feChoices = JsonConvert.DeserializeObject<IEnumerable<FeChoice>>(json).ToList();
-            
-            Console.WriteLine($"[{DateTime.UtcNow:G}] Loaded {feChoices.Count} FE Choices to cache");
-
-            return feChoices;
         }
     }
 }

@@ -83,7 +83,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
     public class ReferenceDataServiceException : Exception
     {
         public ReferenceDataServiceException(Exception e)
-            : base($"Reference data error.", e)
+            : base($"Reference data service error: {e.Message}", e)
         {
         }
 
@@ -95,6 +95,11 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
     public class ProviderServiceException : Exception
     {
+        public ProviderServiceException(Exception e)
+            : base($"Provider service error: {e.Message}", e)
+        {
+        }
+
         public ProviderServiceException(string id, Exception e)
             : base($"Could not find FE Choices data for UKPRN {id}", e)
         {
