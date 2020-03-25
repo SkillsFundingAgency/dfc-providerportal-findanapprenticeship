@@ -13,7 +13,6 @@ using System;
 using Microsoft.Extensions.Logging;
 
 [assembly: WebJobsStartup(typeof(WebJobsExtensionStartup), "Web Jobs Extension Startup")]
-
 namespace Dfc.Providerportal.FindAnApprenticeship
 {
     public class WebJobsExtensionStartup : IWebJobsStartup
