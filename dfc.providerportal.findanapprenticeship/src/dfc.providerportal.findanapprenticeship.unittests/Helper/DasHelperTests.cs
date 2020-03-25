@@ -76,7 +76,10 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
             {
                 // Arrange
                 var contactDetails = provider.ProviderContact.FirstOrDefault();
-                var expected = string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) ? contactDetails.ContactTelephone1 : contactDetails.ContactTelephone2;
+                var expected = 
+                    !string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) 
+                        ? contactDetails.ContactTelephone1 
+                        : contactDetails.ContactTelephone2;
 
                 // Act
                 var result = _sut.CreateDASProviderFromProvider(provider);
@@ -102,7 +105,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
             public void DisplaysTheCorrectPhoneNumber(ApprenticeshipLocation location)
             {
                 // Arrange
-                var expected = location.Address != null ? location.Address.Phone : location.Phone;
+                var expected = location.Phone;
 
                 // Act
                 var locationsList = new List<ApprenticeshipLocation> { location };

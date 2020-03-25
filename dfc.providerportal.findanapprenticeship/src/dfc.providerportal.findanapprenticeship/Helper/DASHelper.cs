@@ -1,16 +1,14 @@
 ﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models.Regions;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
+using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
-using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
+using Dfc.ProviderPortal.Packages;
+using Microsoft.ApplicationInsights;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using Dfc.ProviderPortal.Packages;
-using Microsoft.ApplicationInsights;
-using Newtonsoft.Json;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
@@ -53,16 +51,16 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 return new DASProvider
                 {
                     Id = provider.ProviderId ?? GenerateIntIdentifier(),
-                    Email = contactDetails?.ContactEmail ?? string.Empty,
-                    EmployerSatisfaction = feChoice?.EmployerSatisfaction ?? 0.0,
-                    LearnerSatisfaction = feChoice?.LearnerSatisfaction ?? 0.0,
-                    MarketingInfo = provider.MarketingInformation ?? string.Empty,
-                    Name = provider.ProviderName ?? string.Empty,
-                    TradingName = provider.TradingName ?? string.Empty,
+                    Email = contactDetails?.ContactEmail,
+                    EmployerSatisfaction = feChoice?.EmployerSatisfaction,
+                    LearnerSatisfaction = feChoice?.LearnerSatisfaction,
+                    MarketingInfo = provider.MarketingInformation,
+                    Name = provider.ProviderName,
+                    TradingName = provider.TradingName,
                     NationalProvider = provider.NationalApprenticeshipProvider,
                     UKPRN = ukprn,
-                    Website = contactDetails?.ContactWebsiteAddress ?? string.Empty,
-                    Phone = string.IsNullOrWhiteSpace(contactDetails?.ContactTelephone1)
+                    Website = contactDetails?.ContactWebsiteAddress,
+                    Phone = !string.IsNullOrWhiteSpace(contactDetails?.ContactTelephone1)
                         ? contactDetails?.ContactTelephone1
                         : contactDetails?.ContactTelephone2
                 };
@@ -89,13 +87,9 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     {
                         DASLocations.Add(new Location
                         {
-                            ID = location.TribalId ?? (int?) null,
-                            GuidID = location.Id,
-                            Address = location.Address ?? null,
-                            Email = location.Address != null ? location.Address.Email : string.Empty,
+                            ID = location.TribalId,
+                            Address = location.Address,
                             Name = location.Name,
-                            Phone = location.Address != null ? location.Address.Phone : location.Phone,
-                            Website = location.Address != null ? location.Address.Website : string.Empty
                         });
                     }
 
@@ -137,8 +131,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     FrameworkCode = apprenticeship.FrameworkCode.Value,
                     FrameworkInfoUrl = apprenticeship.Url,
                     MarketingInfo = HtmlHelper.StripHtmlTags(apprenticeship.MarketingInformation, true),
-                    PathwayCode = apprenticeship.PathwayCode ?? (int?)null,
-                    ProgType = apprenticeship.ProgType ?? (int?)null,
+                    PathwayCode = apprenticeship.PathwayCode,
+                    ProgType = apprenticeship.ProgType,
                     Contact = new Contact
                     {
                         ContactUsUrl = apprenticeship.ContactWebsite,

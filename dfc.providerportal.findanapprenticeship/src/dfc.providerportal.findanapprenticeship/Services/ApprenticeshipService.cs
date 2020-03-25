@@ -157,7 +157,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             if (!providerDetailsList.Any()) throw new ProviderNotFoundException(ukprn);
             try
             {
-                    var dasProvider = _DASHelper.CreateDASProviderFromProvider(providerDetailsList.FirstOrDefault());
+                var dasProvider = _DASHelper.CreateDASProviderFromProvider(providerDetailsList.FirstOrDefault());
 
                 if (dasProvider != null)
                 {
