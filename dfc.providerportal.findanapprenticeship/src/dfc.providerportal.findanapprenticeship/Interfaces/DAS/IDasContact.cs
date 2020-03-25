@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
-    public interface IContact
+    public interface IDasContact
     {
         string Phone { get; set; }
         string Email { get; set; }

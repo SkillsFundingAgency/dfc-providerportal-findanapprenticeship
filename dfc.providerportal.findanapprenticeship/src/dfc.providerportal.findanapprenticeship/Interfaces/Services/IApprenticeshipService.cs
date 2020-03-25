@@ -15,6 +15,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services
         Task<IEnumerable<IApprenticeship>> GetApprenticeshipCollection();
         Task<IEnumerable<IApprenticeship>> GetLiveApprenticeships();
         Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn);
-        IEnumerable<IDASProvider> ApprenticeshipsToDASProviders(List<Apprenticeship> apprenticeships);
+        IEnumerable<IDasProvider> ApprenticeshipsToDasProviders(List<Apprenticeship> apprenticeships);
     }
 }

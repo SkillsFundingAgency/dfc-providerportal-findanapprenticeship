@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
-    public interface ILocationRef
+    public interface IDasLocationRef
     {
         List<string> DeliveryModes { get; set; }
         int? ID { get; set; }
