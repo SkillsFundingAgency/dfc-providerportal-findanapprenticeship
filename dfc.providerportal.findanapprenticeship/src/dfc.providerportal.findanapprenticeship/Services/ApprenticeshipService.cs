@@ -62,6 +62,17 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             }
         }
 
+        public async Task<IEnumerable<IApprenticeship>> GetLiveApprenticeships()
+        {
+            using (var client = _cosmosDbHelper.GetTcpClient())
+            {
+                await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
+                await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client, _cosmosSettings.ApprenticeshipCollectionId);
+
+                return _cosmosDbHelper.GetLiveApprenticeships(client, _cosmosSettings.ApprenticeshipCollectionId);
+            }
+        }
+
         public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn)
         {
             Throw.IfNull(ukprn, nameof(ukprn));
