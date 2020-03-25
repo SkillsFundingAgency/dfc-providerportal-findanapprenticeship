@@ -24,5 +24,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
         Task<List<string>> DeleteBulkUploadApprenticeships(DocumentClient client, string collectionId, int UKPRN);
         Task<List<string>> DeleteDocumentsByUKPRN(DocumentClient client, string collectionId, int UKPRN);
         List<Apprenticeship> GetApprenticeshipCollection(DocumentClient client, string collectionId);
+        List<Apprenticeship> GetLiveApprenticeships(DocumentClient client, string collectionId);
     }
 }
