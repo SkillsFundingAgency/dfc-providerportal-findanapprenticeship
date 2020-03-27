@@ -11,8 +11,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
     {
         DasProvider CreateDasProviderFromProvider(Provider provider);
         List<DasLocation> ApprenticeshipLocationsToLocations(IEnumerable<ApprenticeshipLocation> locations);
-        List<DasStandard> ApprenticeshipsToStandards(IEnumerable<Apprenticeship> apprenticeships);
-        List<DasFramework> ApprenticeshipsToFrameworks(IEnumerable<Apprenticeship> apprenticeships);
+        List<DasStandard> ApprenticeshipsToStandards(IEnumerable<Apprenticeship> apprenticeships, IEnumerable<ApprenticeshipLocation> validLocations);
+        List<DasFramework> ApprenticeshipsToFrameworks(IEnumerable<Apprenticeship> apprenticeships, IEnumerable<ApprenticeshipLocation> validLocations);
         List<DasLocation> RegionsToLocations(string[] regionCodes);
     }
 }

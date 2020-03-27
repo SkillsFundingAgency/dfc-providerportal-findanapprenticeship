@@ -192,7 +192,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                 if (DasProvider != null)
                 {
                     var apprenticeshipLocations = apprenticeships.Where(x => x.ApprenticeshipLocations != null)
-                        .SelectMany(x => x.ApprenticeshipLocations).Distinct();
+                        .SelectMany(x => x.ApprenticeshipLocations).Distinct(new ApprenticeshipLocationSameAddress());
 
                     var exportLocations = apprenticeshipLocations.Where(x => x.RecordStatus == RecordStatus.Live);
                     var exportStandards = apprenticeships.Where(x => x.StandardCode.HasValue);
@@ -203,8 +203,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                     evt.Metrics.TryAdd("Provider Frameworks", exportFrameworks.Count());
 
                     DasProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(exportLocations);
-                    DasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(exportStandards);
-                    DasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(exportFrameworks);
+                    DasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(exportStandards, exportLocations);
+                    DasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(exportFrameworks, exportLocations);
 
                     _telemetryClient.TrackEvent(evt);
 

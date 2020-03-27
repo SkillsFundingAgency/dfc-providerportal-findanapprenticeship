@@ -88,7 +88,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     {
                         DASLocations.Add(new DasLocation
                         {
-                            ID = location.TribalId,
+                            Id = location.ToAddressHash(),
                             Address = new DasAddress()
                             {
                                 Address1 = location.Address?.Address1,
@@ -110,11 +110,15 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             return DASLocations;
         }
-        public List<DasStandard> ApprenticeshipsToStandards(IEnumerable<Apprenticeship> apprenticeships)
+        public List<DasStandard> ApprenticeshipsToStandards(IEnumerable<Apprenticeship> apprenticeships, IEnumerable<ApprenticeshipLocation> validLocations)
         {
             List<DasStandard> standards = new List<DasStandard>();
             foreach (var apprenticeship in apprenticeships)
             {
+                if (!apprenticeship.StandardCode.HasValue) continue;
+
+                var apprenticeshipLocations = ValidateApprenticeshipLocations(validLocations, apprenticeship);
+
                 standards.Add(new DasStandard
                 {
                     StandardCode = apprenticeship.StandardCode.Value,
@@ -126,17 +130,22 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                         Email = apprenticeship.ContactEmail,
                         Phone = apprenticeship.ContactTelephone
                     },
-                    Locations = CreateLocationRef(apprenticeship.ApprenticeshipLocations)
+                    Locations = CreateLocationRef(apprenticeshipLocations)
                 });
             }
             return standards;
         }
-        public List<DasFramework> ApprenticeshipsToFrameworks(IEnumerable<Apprenticeship> apprenticeships)
+
+        public List<DasFramework> ApprenticeshipsToFrameworks(IEnumerable<Apprenticeship> apprenticeships, IEnumerable<ApprenticeshipLocation> validLocations)
         {
             List<DasFramework> frameworks = new List<DasFramework>();
 
             foreach (var apprenticeship in apprenticeships)
             {
+                if (!apprenticeship.FrameworkCode.HasValue) continue;
+
+                var apprenticeshipLocations = ValidateApprenticeshipLocations(validLocations, apprenticeship);
+
                 frameworks.Add(new DasFramework
                 {
                     FrameworkCode = apprenticeship.FrameworkCode.Value,
@@ -150,7 +159,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                         Email = apprenticeship.ContactEmail,
                         Phone = apprenticeship.ContactTelephone
                     },
-                    Locations = CreateLocationRef(apprenticeship.ApprenticeshipLocations)
+                    Locations = CreateLocationRef(apprenticeshipLocations)
                 });
             }
             return frameworks;
@@ -164,7 +173,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 if (!region.ApiLocationId.HasValue) continue;
                 var dasLocation = new DasLocation
                 {
-                    ID = region.ApiLocationId.Value,
+                    Id = region.ApiLocationId.Value,
                     Name = region.SubRegionName,
                     Address = new DasAddress()
                     {
@@ -187,9 +196,14 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 {
                     foreach(var region in location.Regions)
                     {
+                        var id = subRegionItemModels
+                            .Where(x => x.Id == region)
+                            .Select(y => y.ApiLocationId.Value)
+                            .FirstOrDefault();
+
                         locationRefs.Add(new DasLocationRef
                         {
-                            ID = subRegionItemModels.Where(x => x.Id == region).Select(y => y.ApiLocationId.Value).FirstOrDefault(),
+                            Id = id,
                             DeliveryModes = ConvertToApprenticeshipDeliveryModes(location),
                             Radius = location.Radius ?? 0
                         }) ;
@@ -199,7 +213,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 {
                     locationRefs.Add(new DasLocationRef
                     {
-                        ID = location.LocationId,
+                        Id = location.ToAddressHash(),
                         DeliveryModes = ConvertToApprenticeshipDeliveryModes(location),
                         Radius = location.Radius ?? 0
                     });
@@ -216,15 +230,20 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 .Where(m => Enum.IsDefined(typeof(DeliveryMode), m))
                 .Select(m => (DeliveryMode) m).ToList();
 
-            if (location.DeliveryModes.Count > validDeliveryModes.Count)
+            var culledDeliveryModes = location.DeliveryModes.Count - validDeliveryModes.Count;
+
+            if (culledDeliveryModes > 0)
             {
                 var evt = new ExceptionTelemetry();
+
                 var undefinedModes = string.Join(", ", location.DeliveryModes
                     .Where(m => !Enum.IsDefined(typeof(DeliveryMode), m)));
 
                 var errorMessage = $"Could not map mode(s) \'{undefinedModes}\' to a matching {nameof(DeliveryMode)}";
+                Console.WriteLine($"Culling {culledDeliveryModes} delivery modes: {errorMessage}");
 
-                evt.Properties.TryAdd("LocationId", $"{location.LocationId}");
+                evt.Properties.TryAdd("LocationId", $"{location.ToAddressHash()}");
+                evt.Properties.TryAdd("Message", errorMessage);
 
                 _telemetryClient.TrackException(
                     new LocationExportException(
@@ -235,6 +254,24 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return validDeliveryModes
                 .Select(m => m.ToDescription())
                 .ToList();
+        }
+
+
+        private static IEnumerable<ApprenticeshipLocation> ValidateApprenticeshipLocations(IEnumerable<ApprenticeshipLocation> validLocations, Apprenticeship apprenticeship)
+        {
+            var activeLocations = apprenticeship.ApprenticeshipLocations
+                .Where(l => l.RecordStatus == RecordStatus.Live &&
+                            validLocations.Contains(l, new ApprenticeshipLocationSameAddress()));
+
+            var culledLocations = apprenticeship.ApprenticeshipLocations.Count - activeLocations.Count();
+
+            if (culledLocations > 0)
+            {
+                Console.WriteLine(
+                    $"Culling {culledLocations} locations from Apprenticeship {apprenticeship.id} that don't match the active list");
+            }
+
+            return activeLocations;
         }
 
         internal int GenerateIntIdentifier()

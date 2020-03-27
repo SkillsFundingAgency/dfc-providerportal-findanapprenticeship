@@ -42,7 +42,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                 
                 var providers = cache.GetOrAdd("DasProviders", dasProviderGetter, DateTimeOffset.Now.AddHours(8));
                 
-                return new OkObjectResult(providers);
+                return new OkObjectResult(providers.Result);
             } 
             catch (Exception e)
             {
