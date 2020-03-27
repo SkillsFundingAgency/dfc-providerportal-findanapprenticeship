@@ -163,7 +163,7 @@
                 },
                 {
                   "name": "ReferenceDataServiceSettings__ApiUrl",
-                  "value": "[concat(parameters('referenceDataApiUrl'), '/api/referencedata/fe-choices/')]"
+                  "value": "[concat(parameters('referenceDataApiUrl'), '/fe-choices/')]"
                 },
                 {
                   "name": "ReferenceDataServiceSettings__ApiKey",
