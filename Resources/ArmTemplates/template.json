@@ -166,7 +166,7 @@
                   "value": "[concat(parameters('referenceDataApiUrl'), '/api/referencedata/fe-choices/')]"
                 },
                 {
-                  "name": "ReferenceDataServiceSettings_ApiKey",
+                  "name": "ReferenceDataServiceSettings__ApiKey",
                   "value": "[parameters('referenceDataApiKey')]"
                 }
               ]
