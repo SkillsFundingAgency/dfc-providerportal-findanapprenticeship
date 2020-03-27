@@ -9,6 +9,7 @@ using Microsoft.ApplicationInsights;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
@@ -163,7 +164,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 if (!region.ApiLocationId.HasValue) continue;
                 var dasLocation = new DasLocation
                 {
-                    Id = region.ApiLocationId.Value,
+                    ID = region.ApiLocationId.Value,
                     Name = region.SubRegionName,
                     Address = new DasAddress()
                     {
@@ -223,7 +224,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
                 var errorMessage = $"Could not map mode(s) \'{undefinedModes}\' to a matching {nameof(DeliveryMode)}";
 
-                evt.Properties.TryAdd("LocationId", $"{location.ToAddressHash()}");
+                evt.Properties.TryAdd("LocationId", $"{location.LocationId}");
 
                 _telemetryClient.TrackException(
                     new LocationExportException(
