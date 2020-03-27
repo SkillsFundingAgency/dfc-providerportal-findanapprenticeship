@@ -45,19 +45,18 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
                 _sut = fixture.Sut;
             }
 
-            [Fact]
-            public async Task AllMatchingModesShouldMapCorrectly()
+            [Theory]
+            [JsonFileData("TestData/Location/Locations.json", "Locations")]
+            public async Task AllMatchingModesShouldMapCorrectly(ApprenticeshipLocation location)
             {
                 // arrange
-                var expected = _validDeliveryModes;
-                var listOfDeliveryModes = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-                var locationToTest = new ApprenticeshipLocation() { DeliveryModes = listOfDeliveryModes };
+                List<string> expected = _validDeliveryModes;
 
                 // act
-                var actual = _sut.ConvertToApprenticeshipDeliveryModes(locationToTest);
+                var actual = _sut.ConvertToApprenticeshipDeliveryModes(location);
 
                 // assert
-                Assert.Equal(expected, actual);
+                Assert.ProperSubset<string>(expected.ToHashSet(), actual.ToHashSet());
             }
         }
 
