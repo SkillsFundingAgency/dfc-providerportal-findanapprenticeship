@@ -28,21 +28,22 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         private static int GenerateHash(string value)
         {
-            var hash = 0;
-            if (string.IsNullOrEmpty(value)) return (hash);
+            using (var crypto = new SHA256CryptoServiceProvider())
+            {
+                var hash = 0;
+                if (string.IsNullOrEmpty(value)) return (hash);
 
-            var byteContents = Encoding.Unicode.GetBytes(value);
+                var byteContents = Encoding.Unicode.GetBytes(value);
 
-            SHA256 crypto = new SHA256CryptoServiceProvider();
+                var hashText = crypto.ComputeHash(byteContents);
 
-            var hashText = crypto.ComputeHash(byteContents);
+                var α = BitConverter.ToInt64(hashText, 0);
+                var β = BitConverter.ToInt64(hashText, 8);
+                var γ = BitConverter.ToInt64(hashText, 24);
 
-            var α = BitConverter.ToInt64(hashText, 0);
-            var β = BitConverter.ToInt64(hashText, 8);
-            var γ = BitConverter.ToInt64(hashText, 24);
-
-            hash = (int) (α ^ β ^ γ);
-            return (hash);
+                hash = (int) (α ^ β ^ γ);
+                return (hash);
+            }
         }
     }
 
