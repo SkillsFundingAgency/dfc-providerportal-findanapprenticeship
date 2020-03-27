@@ -6,7 +6,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface IDasLocation
     {
-        int? ID { get; set; }
+        int Id { get; set; }
         string Name { get; set; }
         IDasAddress Address { get; set; }
         string Email { get; set; }

@@ -8,11 +8,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships
     public interface IApprenticeshipLocation
     {
         Guid Id { get; } // Cosmos DB id
-        Guid? VenueId { get; }
-        int? TribalId { get; }
-        int ApprenticeshipLocationId { get; }
-        Guid? LocationGuidId { get; }
-        int? LocationId { get; }
         bool? National { get; }
         Address Address { get; }
         List<int> DeliveryModes { get; }
