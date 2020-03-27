@@ -119,7 +119,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     StandardCode = apprenticeship.StandardCode.Value,
                     MarketingInfo = apprenticeship.MarketingInformation,
                     StandardInfoUrl = apprenticeship.Url,
-                    DasContact = new DasContact
+                    Contact = new DasContact
                     {
                         ContactUsUrl = apprenticeship.Url,
                         Email = apprenticeship.ContactEmail,
@@ -143,7 +143,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     MarketingInfo = HtmlHelper.StripHtmlTags(apprenticeship.MarketingInformation, true),
                     PathwayCode = apprenticeship.PathwayCode,
                     ProgType = apprenticeship.ProgType,
-                    DasContact = new DasContact
+                    Contact = new DasContact
                     {
                         ContactUsUrl = apprenticeship.ContactWebsite,
                         Email = apprenticeship.ContactEmail,
@@ -160,17 +160,17 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             var regions = new SelectRegionModel().RegionItems.SelectMany(x => x.SubRegion.Where(y => regionCodes.Contains(y.Id)));
             foreach (var region in regions)
             {
-                DasLocation dasLocation = new DasLocation
+                if (!region.ApiLocationId.HasValue) continue;
+                var dasLocation = new DasLocation
                 {
-                    ID = region.ApiLocationId,
+                    Id = region.ApiLocationId.Value,
                     Name = region.SubRegionName,
                     Address = new DasAddress()
                     {
                         Address1 = region.SubRegionName,
                         Latitude = region.Latitude,
                         Longitude = region.Longitude
-                    },
-
+                    }
                 };
                 apprenticeshipLocations.Add(dasLocation);
             }
@@ -217,17 +217,18 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             if (location.DeliveryModes.Count > validDeliveryModes.Count)
             {
+                var evt = new ExceptionTelemetry();
                 var undefinedModes = string.Join(", ", location.DeliveryModes
                     .Where(m => !Enum.IsDefined(typeof(DeliveryMode), m)));
 
                 var errorMessage = $"Could not map mode(s) \'{undefinedModes}\' to a matching {nameof(DeliveryMode)}";
 
-                var eventProperties = new Dictionary<string, string>();
-                var metrics = new Dictionary<string, double>();
+                evt.Properties.TryAdd("LocationId", $"{location.ToAddressHash()}");
 
-                eventProperties.TryAdd("LocationId", location.LocationId.ToString());
-
-                _telemetryClient.TrackException(new LocationExportException(location.Id.ToString()), eventProperties);
+                _telemetryClient.TrackException(
+                    new LocationExportException(
+                        location.Id.ToString(), 
+                        new InvalidCastException(errorMessage)));
             }
 
             return validDeliveryModes
