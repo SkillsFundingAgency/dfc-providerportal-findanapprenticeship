@@ -12,6 +12,8 @@ using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
 using System.Collections.Generic;
 using System.Linq;
+using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
+using LazyCache;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 {
@@ -20,6 +22,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
         [FunctionName("GetApprenticeshipsAsProvider")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "bulk/providers")] HttpRequest req,
                                                     ILogger log,
+                                                    [Inject] IAppCache cache,
                                                     [Inject] IApprenticeshipService apprenticeshipService)
         {
             List<Apprenticeship> persisted = null;
@@ -31,7 +34,13 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                 persisted = (List<Apprenticeship>)await apprenticeshipService.GetLiveApprenticeships();
                 if (persisted == null)
                     return new EmptyResult();
-                var providers = apprenticeshipService.ApprenticeshipsToDasProviders(persisted);
+
+                Func<Task<List<DasProvider>>> dasProviderGetter = async () =>
+                {
+                    return apprenticeshipService.ApprenticeshipsToDasProviders(persisted) as List<DasProvider>;
+                };
+                
+                var providers = cache.GetOrAdd("DasProviders", dasProviderGetter, DateTimeOffset.Now.AddHours(8));
                 
                 return new OkObjectResult(providers);
             } 

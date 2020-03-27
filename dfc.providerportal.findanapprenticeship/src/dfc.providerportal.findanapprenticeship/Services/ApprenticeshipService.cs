@@ -109,12 +109,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         [Obsolete("This shouldn't be used any more - if possible replace with a mapping class using something like AutoMapper ", false)]
         public IEnumerable<IDasProvider> ApprenticeshipsToDasProviders(List<Apprenticeship> apprenticeships)
         {
-            Func<IEnumerable<IDasProvider>> DasProviderGetter = () =>
+            try
             {
                 var timer = Stopwatch.StartNew();
                 var export = new List<DasProvider>();
 
-                var evt = new EventTelemetry {Name = "ApprenticeshipsToDasProviders"};
+                var evt = new EventTelemetry { Name = "ApprenticeshipsToDasProviders" };
 
                 var apprenticeshipProviders = apprenticeships.Select(x => x.ProviderUKPRN.ToString())
                     .OrderBy(x => x)
@@ -167,11 +167,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                 _telemetryClient.TrackEvent(evt);
 
                 return export;
-            };
-
-            try
-            {
-                return _cache.GetOrAdd("DasProviders", DasProviderGetter, DateTimeOffset.Now.AddHours(8));
             }
             catch (Exception e)
             {
