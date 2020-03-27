@@ -18,7 +18,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
     public static class GetApprenticeshipsAsProvider
     {
         [FunctionName("GetApprenticeshipsAsProvider")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "bulk/providers")] HttpRequest req,
                                                     ILogger log,
                                                     [Inject] IApprenticeshipService apprenticeshipService)
         {

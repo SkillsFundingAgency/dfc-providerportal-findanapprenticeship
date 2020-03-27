@@ -12,7 +12,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Controller
     [ApiController]
     public class DocController : ControllerBase
     {
-        [Route("GetApprenticeshipsAsProvider")]
+        [Route("bulk/providers")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<DasProvider>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
