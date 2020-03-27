@@ -5,7 +5,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
     public interface IDasStandard
     {
-        IDasContact DasContact { get; set; }
+        IDasContact Contact { get; set; }
 
         List<DasLocationRef> Locations { get; set; }
         string MarketingInfo { get; set; }

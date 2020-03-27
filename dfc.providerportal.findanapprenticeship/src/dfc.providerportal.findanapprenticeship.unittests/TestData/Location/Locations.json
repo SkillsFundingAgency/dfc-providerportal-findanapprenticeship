@@ -23,7 +23,8 @@
         },
         "DeliveryModes": [
           2,
-          3
+          3,
+          43 // bad DeliveryMode ID
         ],
         "Name": "Leeds",
         "Phone": null,

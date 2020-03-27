@@ -10,7 +10,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
         public int? ProgType { get; set; }
         public string MarketingInfo { get; set; }
         public string FrameworkInfoUrl { get; set; }
-        public IDasContact DasContact { get; set; }
+        public IDasContact Contact { get; set; }
         public List<DasLocationRef> Locations { get; set; }
   
     }

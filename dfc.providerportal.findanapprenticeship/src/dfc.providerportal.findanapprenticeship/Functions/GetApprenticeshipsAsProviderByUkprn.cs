@@ -15,7 +15,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
     public static class GetApprenticeshipsAsProviderByUkprn
     {
         [FunctionName("GetApprenticeshipsAsProviderByUkprn")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
+            HttpRequest req,
             ILogger log,
             [Inject] IApprenticeshipService apprenticeshipService)
         {
@@ -30,7 +31,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 
             try
             {
-                var persisted = (List<Apprenticeship>)await apprenticeshipService.GetApprenticeshipsByUkprn(ukprn);
+                var persisted = (List<Apprenticeship>) await apprenticeshipService.GetApprenticeshipsByUkprn(ukprn);
                 if (persisted == null)
                     return new EmptyResult();
                 var providers = apprenticeshipService.ApprenticeshipsToDasProviders(persisted);
