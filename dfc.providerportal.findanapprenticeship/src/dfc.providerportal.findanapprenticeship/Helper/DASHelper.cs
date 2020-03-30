@@ -94,8 +94,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                                 Address1 = location.Address?.Address1,
                                 Address2 = location.Address?.Address2,
                                 County = location.Address?.County,
-                                Latitude = location.Address?.Latitude,
-                                Longitude = location.Address?.Longitude,
+                                Lat = location.Address?.Latitude,
+                                Long = location.Address?.Longitude,
                                 Postcode = location.Address?.Postcode,
                             },
                             Name = location.Name,
@@ -178,8 +178,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     Address = new DasAddress()
                     {
                         Address1 = region.SubRegionName,
-                        Latitude = region.Latitude,
-                        Longitude = region.Longitude
+                        Lat = region.Latitude,
+                        Long = region.Longitude
                     }
                 };
                 apprenticeshipLocations.Add(dasLocation);

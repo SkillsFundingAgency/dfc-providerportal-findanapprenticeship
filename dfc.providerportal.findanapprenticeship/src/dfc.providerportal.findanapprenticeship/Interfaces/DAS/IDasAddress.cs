@@ -8,9 +8,9 @@
 
         string County { get; set; }
 
-        double? Latitude { get; set; }
+        double? Lat { get; set; }
 
-        double? Longitude { get; set; }
+        double? Long { get; set; }
 
         string Postcode { get; set; }
 
