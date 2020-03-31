@@ -107,8 +107,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
                 var expected = location.Phone;
 
                 // Act
-                var locationsList = new List<ApprenticeshipLocation> { location };
-                var result = _sut.ApprenticeshipLocationsToLocations(locationsList);
+                var locationsList = new Dictionary<string, ApprenticeshipLocation>() { { "1234", location } };
+                var result = _sut.ApprenticeshipLocationsToLocations(1234, locationsList);
                 var actual = result.FirstOrDefault().Phone;
 
                 // Assert

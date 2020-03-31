@@ -7,6 +7,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
     {
         IEnumerable<Provider> GetAllProviders();
 
-        IEnumerable<Provider> GetProviderByUKPRN(string UKPRN);
+        IEnumerable<Provider> GetProviderByUkprn(int ukprn);
     }
 }
