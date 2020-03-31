@@ -215,7 +215,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         }
 
-        private List<string> ConvertToApprenticeshipDeliveryModes(ApprenticeshipLocation location)
+        public List<string> ConvertToApprenticeshipDeliveryModes(ApprenticeshipLocation location)
         {
             var validDeliveryModes = location.DeliveryModes
                 .Where(m => Enum.IsDefined(typeof(DeliveryMode), m))
