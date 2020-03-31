@@ -15,6 +15,5 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
             Dictionary<string, ApprenticeshipLocation> validLocations);
         List<DasFramework> ApprenticeshipsToFrameworks(int exportKey, IEnumerable<Apprenticeship> apprenticeships,
             Dictionary<string, ApprenticeshipLocation> validLocations);
-        List<DasLocation> RegionsToLocations(int exportKey, string[] regionCodes);
     }
 }
