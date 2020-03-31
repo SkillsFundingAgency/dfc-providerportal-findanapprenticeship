@@ -15,23 +15,23 @@ using Microsoft.Extensions.Options;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
-    public class ProviderServiceWrapper : IProviderServiceWrapper
+    public class ProviderServiceClient : IProviderServiceClient
     {
-        private readonly IProviderService _client;
+        private readonly IProviderService _service;
         private readonly IAppCache _cache;
         private readonly IProviderServiceSettings _settings;
 
-        public ProviderServiceWrapper(IOptions<ProviderServiceSettings> settings, 
+        public ProviderServiceClient(IOptions<ProviderServiceSettings> settings, 
             IAppCache cache,
-            IProviderService client)
+            IProviderService service)
         {
             Throw.IfNull(settings, nameof(settings));
             Throw.IfNull(cache, nameof(cache));
-            Throw.IfNull(client, nameof(client));
+            Throw.IfNull(service, nameof(service));
 
             _settings = settings.Value;
             _cache = cache;
-            _client = client;
+            _service = service;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         public IEnumerable<Provider> GetAllProviders()
         {
-            Func<IEnumerable<Provider>> activeProvidersGetter = () => _client.GetActiveProviders();
+            Func<IEnumerable<Provider>> activeProvidersGetter = () => _service.GetActiveProviders();
 
             try
             {

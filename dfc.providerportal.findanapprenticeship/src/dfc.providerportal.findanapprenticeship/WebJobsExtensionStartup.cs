@@ -66,8 +66,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship
 
             #region Services
 
-            builder.Services.AddSingleton<IReferenceDataServiceWrapper, ReferenceDataServiceWrapper>();
-            builder.Services.AddSingleton<IProviderServiceWrapper, ProviderServiceWrapper>();
+            builder.Services.AddSingleton<IReferenceDataServiceClient, ReferenceDataServiceClient>();
+            builder.Services.AddSingleton<IProviderServiceClient, ProviderServiceClient>();
             builder.Services.AddScoped<ICosmosDbHelper, CosmosDbHelper>();
             builder.Services.AddScoped<IDASHelper, DASHelper>();
             builder.Services.AddScoped<IApprenticeshipService, ApprenticeshipService>();

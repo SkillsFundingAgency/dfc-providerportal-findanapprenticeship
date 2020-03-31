@@ -16,16 +16,16 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
     public class DASHelper : IDASHelper
     {
         private readonly TelemetryClient _telemetryClient;
-        private readonly IReferenceDataServiceWrapper _referenceDataServiceWrapper;
+        private readonly IReferenceDataServiceClient _referenceDataServiceClient;
         private int _intIdentifier { get; set; }
 
-        public DASHelper(TelemetryClient telemetryClient, IReferenceDataServiceWrapper referenceDataServiceWrapper)
+        public DASHelper(TelemetryClient telemetryClient, IReferenceDataServiceClient referenceDataServiceClient)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));
-            Throw.IfNull(referenceDataServiceWrapper, nameof(referenceDataServiceWrapper));
+            Throw.IfNull(referenceDataServiceClient, nameof(referenceDataServiceClient));
 
             _telemetryClient = telemetryClient;
-            _referenceDataServiceWrapper = referenceDataServiceWrapper;
+            _referenceDataServiceClient = referenceDataServiceClient;
             _intIdentifier = 300000;
         }
 
@@ -46,7 +46,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             {
                 var contactDetails = provider.ProviderContact.FirstOrDefault();
 
-                var feChoice = _referenceDataServiceWrapper
+                var feChoice = _referenceDataServiceClient
                     .GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber);
 
                 return new DasProvider

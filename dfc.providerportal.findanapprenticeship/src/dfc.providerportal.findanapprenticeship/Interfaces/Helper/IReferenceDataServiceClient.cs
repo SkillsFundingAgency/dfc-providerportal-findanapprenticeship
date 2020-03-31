@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
 {
-    public interface IReferenceDataServiceWrapper
+    public interface IReferenceDataServiceClient
     {
         IEnumerable<FeChoice> GetAllFeChoiceData();
 
