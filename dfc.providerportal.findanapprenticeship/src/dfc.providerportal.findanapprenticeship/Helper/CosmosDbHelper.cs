@@ -86,6 +86,15 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return new DocumentClient(new Uri(_settings.EndpointUri), _settings.PrimaryKey);
         }
 
+        public DocumentClient GetTcpClient()
+        {
+            return new DocumentClient(new Uri(_settings.EndpointUri), _settings.PrimaryKey, new ConnectionPolicy
+            {
+                ConnectionMode = ConnectionMode.Direct,
+                ConnectionProtocol = Protocol.Tcp
+            });
+        }
+
         public Document GetDocumentById<T>(DocumentClient client, string collectionId, T id)
         {
             Throw.IfNull(client, nameof(client));
@@ -287,6 +296,18 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             return client.CreateDocumentQuery<Apprenticeship>(uri, options).ToList();
             
         }
+
+        public List<Apprenticeship> GetLiveApprenticeships(DocumentClient client, string collectionId)
+        {
+            Uri uri = UriFactory.CreateDocumentCollectionUri(_settings.DatabaseId, collectionId);
+            FeedOptions options = new FeedOptions { EnableCrossPartitionQuery = true, MaxItemCount = -1 };
+
+            return client.CreateDocumentQuery<Apprenticeship>(uri, options)
+                .Where(x => x.RecordStatus == RecordStatus.Live)
+                .ToList();
+
+        }
+
         internal static List<string> FormatSearchTerm(string searchTerm)
         {
             Throw.IfNullOrWhiteSpace(searchTerm, nameof(searchTerm));

@@ -4,10 +4,10 @@ using System.Text;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
-    public interface IContact
+    public interface IDasLocationRef
     {
-        string Phone { get; set; }
-        string Email { get; set; }
-        string ContactUsUrl { get; set; }
+        List<string> DeliveryModes { get; set; }
+        int Id { get; set; }
+        int Radius { get; set; }
     }
 }

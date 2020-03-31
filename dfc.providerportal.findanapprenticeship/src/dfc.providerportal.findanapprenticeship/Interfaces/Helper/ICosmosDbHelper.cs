@@ -9,6 +9,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
     public interface ICosmosDbHelper
     {
         DocumentClient GetClient();
+        DocumentClient GetTcpClient();
+
         Task<Database> CreateDatabaseIfNotExistsAsync(DocumentClient client);
         Task<DocumentCollection> CreateDocumentCollectionIfNotExistsAsync(DocumentClient client, string collectionId);
         Task<Document> CreateDocumentAsync(DocumentClient client, string collectionId, object document);
@@ -22,5 +24,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
         Task<List<string>> DeleteBulkUploadApprenticeships(DocumentClient client, string collectionId, int UKPRN);
         Task<List<string>> DeleteDocumentsByUKPRN(DocumentClient client, string collectionId, int UKPRN);
         List<Apprenticeship> GetApprenticeshipCollection(DocumentClient client, string collectionId);
+        List<Apprenticeship> GetLiveApprenticeships(DocumentClient client, string collectionId);
     }
 }

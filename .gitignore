@@ -338,3 +338,6 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+dfc.providerportal.findanapprenticeship/local.settings.json
+*.ncrunch*
+dfc.providerportal.findanapprenticeship/src/dfc.providerportal.findanapprenticeship/dfc.providerportal.findanapprenticeship.csproj
