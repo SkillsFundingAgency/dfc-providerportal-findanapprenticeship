@@ -30,14 +30,14 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         private readonly IDASHelper _DASHelper;
         private readonly ICosmosDbCollectionSettings _cosmosSettings;
         private readonly IProviderServiceSettings _providerServiceSettings;
-        private readonly IProviderServiceWrapper _providerService;
+        private readonly IProviderServiceClient _providerService;
         private readonly IAppCache _cache;
 
         public ApprenticeshipService(
             TelemetryClient telemetryClient,
             ICosmosDbHelper cosmosDbHelper,
             IOptions<CosmosDbCollectionSettings> cosmosSettings,
-            IProviderServiceWrapper providerService, 
+            IProviderServiceClient providerService, 
             IDASHelper DASHelper, IAppCache cache)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));

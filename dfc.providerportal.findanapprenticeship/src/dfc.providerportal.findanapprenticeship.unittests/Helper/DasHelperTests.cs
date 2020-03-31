@@ -19,13 +19,13 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
         {
             private readonly DASHelper _dasHelper;
             private readonly TelemetryClient _telemetryClient;
-            private readonly IReferenceDataServiceWrapper _referenceDataServiceWrapper;
+            private readonly IReferenceDataServiceClient _referenceDataServiceClient;
 
             public DasHelperFixture()
             {
                 var _telemetryClient = new TelemetryClient();
-                _referenceDataServiceWrapper = Substitute.For<IReferenceDataServiceWrapper>();
-                _dasHelper = new DASHelper(_telemetryClient, _referenceDataServiceWrapper);
+                _referenceDataServiceClient = Substitute.For<IReferenceDataServiceClient>();
+                _dasHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
             }
 
             public DASHelper Sut => _dasHelper;

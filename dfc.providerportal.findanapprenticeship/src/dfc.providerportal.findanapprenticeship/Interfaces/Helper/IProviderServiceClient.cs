@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
 {
-    public interface IProviderServiceWrapper
+    public interface IProviderServiceClient
     {
         IEnumerable<Provider> GetAllProviders();
 
