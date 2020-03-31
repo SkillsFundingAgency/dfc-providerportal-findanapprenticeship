@@ -9,6 +9,8 @@ using Microsoft.ApplicationInsights;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
@@ -109,8 +111,9 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 }
             }
 
-            return DASLocations;
+            return DASLocations.Distinct(new DasLocationComparer()).ToList();
         }
+
         public List<DasStandard> ApprenticeshipsToStandards(int exportKey, IEnumerable<Apprenticeship> apprenticeships,
             Dictionary<string, ApprenticeshipLocation> validLocations)
         {
@@ -166,38 +169,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
             return frameworks;
         }
-        public List<DasLocation> RegionsToLocations(int exportKey, string[] regionCodes)
-        {
-            List<DasLocation> apprenticeshipLocations = new List<DasLocation>();
-            var regions = new SelectRegionModel().RegionItems.SelectMany(x => x.SubRegion.Where(y => regionCodes.Contains(y.Id)));
-            foreach (var region in regions)
-            {
-                if (!region.ApiLocationId.HasValue) continue;
 
-                var locationId = $"{region.ApiLocationId.Value}";
-                if (!string.IsNullOrWhiteSpace(locationId))
-                {
-                    // get last three digits of region code
-                    var regionId = locationId.Substring(locationId.Length - 3, 3);
-
-                    var regionIndex = $"{exportKey}2{regionId}";
-                    var dasLocation = new DasLocation
-                    {
-                        Id = int.Parse(regionIndex),
-                        Name = region.SubRegionName,
-                        Address = new DasAddress()
-                        {
-                            Address1 = region.SubRegionName,
-                            Lat = region.Latitude,
-                            Long = region.Longitude
-                        }
-                    };
-                    apprenticeshipLocations.Add(dasLocation);
-                }
-            }
-            return apprenticeshipLocations;
-        }
-        public List<DasLocationRef> CreateLocationRef(int exportKey, Dictionary<string, ApprenticeshipLocation> locations)
+        private List<DasLocationRef> CreateLocationRef(int exportKey, Dictionary<string, ApprenticeshipLocation> locations)
         {
             List<DasLocationRef> locationRefs = new List<DasLocationRef>();
             var subRegionItemModels = new SelectRegionModel().RegionItems.SelectMany(x => x.SubRegion);
@@ -242,7 +215,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         }
 
-        public List<string> ConvertToApprenticeshipDeliveryModes(ApprenticeshipLocation location)
+        private List<string> ConvertToApprenticeshipDeliveryModes(ApprenticeshipLocation location)
         {
             var validDeliveryModes = location.DeliveryModes
                 .Where(m => Enum.IsDefined(typeof(DeliveryMode), m))
@@ -274,6 +247,39 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 .ToList();
         }
 
+
+        private IEnumerable<DasLocation> RegionsToLocations(int exportKey, string[] regionCodes)
+        {
+            List<DasLocation> apprenticeshipLocations = new List<DasLocation>();
+            var regions = new SelectRegionModel().RegionItems.SelectMany(x => x.SubRegion.Where(y => regionCodes.Contains(y.Id)));
+
+            foreach (var region in regions)
+            {
+                if (!region.ApiLocationId.HasValue) continue;
+
+                var locationId = $"{region.ApiLocationId.Value}";
+                if (!string.IsNullOrWhiteSpace(locationId))
+                {
+                    // get last three digits of region code
+                    var regionId = locationId.Substring(locationId.Length - 3, 3);
+
+                    var regionIndex = $"{exportKey}2{regionId}";
+                    var dasLocation = new DasLocation
+                    {
+                        Id = int.Parse(regionIndex),
+                        Name = region.SubRegionName,
+                        Address = new DasAddress()
+                        {
+                            Address1 = region.SubRegionName,
+                            Lat = region.Latitude,
+                            Long = region.Longitude
+                        }
+                    };
+                    apprenticeshipLocations.Add(dasLocation);
+                }
+            }
+            return apprenticeshipLocations;
+        }
 
         private static Dictionary<string, ApprenticeshipLocation> ValidateApprenticeshipLocations(Dictionary<string, ApprenticeshipLocation> validLocations, Apprenticeship apprenticeship)
         {
