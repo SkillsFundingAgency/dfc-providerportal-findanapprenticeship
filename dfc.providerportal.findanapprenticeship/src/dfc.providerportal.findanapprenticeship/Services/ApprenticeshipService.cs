@@ -2,7 +2,6 @@
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Settings;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
@@ -11,86 +10,220 @@ using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.ProviderPortal.Packages;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using LazyCache;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Services
 {
     public class ApprenticeshipService : IApprenticeshipService
     {
+        private readonly TelemetryClient _telemetryClient;
         private readonly ICosmosDbHelper _cosmosDbHelper;
         private readonly IDASHelper _DASHelper;
-        private readonly ICosmosDbCollectionSettings _settings;
+        private readonly ICosmosDbCollectionSettings _cosmosSettings;
         private readonly IProviderServiceSettings _providerServiceSettings;
-
+        private readonly IProviderServiceWrapper _providerService;
+        private readonly IAppCache _cache;
 
         public ApprenticeshipService(
+            TelemetryClient telemetryClient,
             ICosmosDbHelper cosmosDbHelper,
-            IDASHelper DASHelper,
-            IOptions<CosmosDbCollectionSettings> settings,
-            IOptions<ProviderServiceSettings> providerServiceSettings)
+            IOptions<CosmosDbCollectionSettings> cosmosSettings,
+            IProviderServiceWrapper providerService, 
+            IDASHelper DASHelper, IAppCache cache)
         {
+            Throw.IfNull(telemetryClient, nameof(telemetryClient));
             Throw.IfNull(cosmosDbHelper, nameof(cosmosDbHelper));
             Throw.IfNull(DASHelper, nameof(DASHelper));
-            Throw.IfNull(settings, nameof(settings));
-            Throw.IfNull(providerServiceSettings, nameof(providerServiceSettings));
+            Throw.IfNull(cosmosSettings, nameof(cosmosSettings));
+            Throw.IfNull(providerService, nameof(providerService));
 
+            _telemetryClient = telemetryClient;
             _cosmosDbHelper = cosmosDbHelper;
             _DASHelper = DASHelper;
-            _settings = settings.Value;
-            _providerServiceSettings = providerServiceSettings.Value;
+            _cache = cache;
+            _providerService = providerService;
+            _cosmosSettings = cosmosSettings.Value;
         }
 
         public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipCollection()
         {
-            using (var client = _cosmosDbHelper.GetClient())
+            using (var client = _cosmosDbHelper.GetTcpClient())
             {
                 await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
-                await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client, _settings.ApprenticeshipCollectionId);
+                await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client, _cosmosSettings.ApprenticeshipCollectionId);
 
-                return _cosmosDbHelper.GetApprenticeshipCollection(client, _settings.ApprenticeshipCollectionId);
+                return _cosmosDbHelper.GetApprenticeshipCollection(client, _cosmosSettings.ApprenticeshipCollectionId);
+            }
+        }
+
+        public async Task<IEnumerable<IApprenticeship>> GetLiveApprenticeships()
+        {
+            Func<Task<List<Apprenticeship>>> liveApprenticeshipsGetter = async () =>
+            {
+                using (var client = _cosmosDbHelper.GetTcpClient())
+                {
+                    await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
+                    await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client,
+                        _cosmosSettings.ApprenticeshipCollectionId);
+
+                    return _cosmosDbHelper.GetLiveApprenticeships(client, _cosmosSettings.ApprenticeshipCollectionId);
+                }
+            };
+
+            return await _cache.GetOrAddAsync("LiveApprenticeships", liveApprenticeshipsGetter,
+                DateTimeOffset.Now.AddHours(8));
+        }
+
+        public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn)
+        {
+            Throw.IfNull(ukprn, nameof(ukprn));
+            Throw.IfLessThan(0, ukprn, nameof(ukprn));
+
+            IEnumerable<Apprenticeship> persisted;
+            using (var client = _cosmosDbHelper.GetTcpClient())
+            {
+                await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
+                await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client, _cosmosSettings.ApprenticeshipCollectionId);
+
+                var docs = _cosmosDbHelper.GetApprenticeshipByUKPRN(client, _cosmosSettings.ApprenticeshipCollectionId, ukprn);
+                persisted = docs;
             }
 
-
+            return persisted;
         }
-        public IEnumerable<IDASProvider> ApprenticeshipsToDASProviders(List<Apprenticeship> apprenticeships)
+
+        /// <summary>
+        /// Maps apprenticeships to provider(s) ready for export to DAS
+        /// </summary>
+        /// <param name="apprenticeships">A list of apprenticeships to be processed and grouped into Providers</param>
+        /// <returns></returns>
+        [Obsolete("This shouldn't be used any more - if possible replace with a mapping class using something like AutoMapper ", false)]
+        public IEnumerable<IDasProvider> ApprenticeshipsToDasProviders(List<Apprenticeship> apprenticeships)
         {
-            List<DASProvider> providers = new List<DASProvider>();
-            List<string> listOfProviderUKPRN = new List<string>();
-
-            listOfProviderUKPRN = apprenticeships.Select(x => x.ProviderUKPRN.ToString())
-                                                 .Distinct()
-                                                 .ToList();
-            foreach (var ukprn in listOfProviderUKPRN)
+            try
             {
-                var providerApprenticeships = apprenticeships.Where(x => x.ProviderUKPRN.ToString() == ukprn && x.RecordStatus == RecordStatus.Live).ToList();
+                var timer = Stopwatch.StartNew();
+                var export = new List<DasProvider>();
 
-                var providerDetailsList = GetProviderDetails(ukprn);
-                if (providerDetailsList != null && providerDetailsList.Count() > 0)
+                var evt = new EventTelemetry { Name = "ApprenticeshipsToDasProviders" };
+
+                var apprenticeshipProviders = apprenticeships.Select(x => x.ProviderUKPRN.ToString())
+                    .OrderBy(x => x)
+                    .Distinct()
+                    .ToList();
+
+                evt.Metrics.TryAdd("Apprenticeships", apprenticeships.Count);
+                evt.Metrics.TryAdd("Providers", apprenticeshipProviders.Count);
+
+                Console.WriteLine(
+                    $"[{DateTime.UtcNow:G}] Found {apprenticeships.Count} apprenticeships for {apprenticeshipProviders.Count} Providers");
+
+                int success = 0, failure = 0, count = 1;
+
+                Parallel.ForEach(apprenticeshipProviders, (ukprn) =>
                 {
+                    try
+                    {
+                        var providerApprenticeships = apprenticeships
+                            .Where(x => x.ProviderUKPRN.ToString() == ukprn && x.RecordStatus == RecordStatus.Live)
+                            .ToList();
 
-                    var DASProvider = _DASHelper.CreateDASProviderFromProvider(providerDetailsList.FirstOrDefault());
-                    var apprenticeshipLocations = providerApprenticeships.Where(x => x.ApprenticeshipLocations != null)
-                                                 .SelectMany(x => x.ApprenticeshipLocations);
+                        var provider = ExportProvider(providerApprenticeships, ukprn);
 
-                    DASProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(apprenticeshipLocations.Where(x => x.RecordStatus == RecordStatus.Live));
-                    DASProvider.Standards = _DASHelper.ApprenticeshipsToStandards(providerApprenticeships.Where(x => x.StandardCode.HasValue));
-                    DASProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(providerApprenticeships.Where(x => x.FrameworkCode.HasValue));
-                    providers.Add(DASProvider);
+                        export.Add(provider);
+                        success++;
+                        Console.WriteLine(
+                            $"[{DateTime.UtcNow:G}] Exported {ukprn} ({count} of {apprenticeshipProviders.Count})");
+                    }
+                    catch (ExportException e)
+                    {
+                        failure++;
+                        _telemetryClient.TrackException(e);
+                        Console.WriteLine(
+                            $"[{DateTime.UtcNow:G}] Failed to export {ukprn} ({count} of {apprenticeshipProviders.Count})");
+                    }
+
+                    count++;
+                });
+
+                Console.WriteLine($"[{DateTime.UtcNow:G}] Exported {success} Providers in {timer.Elapsed.TotalSeconds} seconds.");
+                if (failure > 1)
+                    Console.WriteLine($"[{DateTime.UtcNow:G}] [WARNING] Encountered {failure} errors that need attention");
+
+                timer.Stop();
+
+                evt.Metrics.TryAdd("Export elapsed time (ms)", timer.ElapsedMilliseconds);
+                evt.Metrics.TryAdd("Export success", success);
+                evt.Metrics.TryAdd("Export failures", failure);
+                _telemetryClient.TrackEvent(evt);
+
+                return export;
+            }
+            catch (Exception e)
+            {
+                throw new ProviderServiceException(e);
+            }
+        }
+
+        private DasProvider ExportProvider(List<Apprenticeship> apprenticeships, string ukprn)
+        {
+            var evt = new EventTelemetry {Name = "ComposeProviderForExport"};
+
+            evt.Properties.TryAdd("UKPRN", ukprn);
+            evt.Metrics.TryAdd("ProviderApprenticeships", apprenticeships.Count());
+
+            var providerDetailsList = GetProviderDetails(ukprn).ToList();
+            evt.Metrics.TryAdd("MatchingProviders", providerDetailsList.Count());
+
+            if (!providerDetailsList.Any()) throw new ProviderNotFoundException(ukprn);
+            try
+            {
+                var DasProvider = _DASHelper.CreateDasProviderFromProvider(providerDetailsList.FirstOrDefault());
+
+                if (DasProvider != null)
+                {
+                    var apprenticeshipLocations = apprenticeships.Where(x => x.ApprenticeshipLocations != null)
+                        .SelectMany(x => x.ApprenticeshipLocations).Distinct(new ApprenticeshipLocationSameAddress());
+
+                    var exportLocations = apprenticeshipLocations.Where(x => x.RecordStatus == RecordStatus.Live);
+                    var exportStandards = apprenticeships.Where(x => x.StandardCode.HasValue);
+                    var exportFrameworks = apprenticeships.Where(x => x.FrameworkCode.HasValue);
+
+                    evt.Metrics.TryAdd("Provider Locations", exportLocations.Count());
+                    evt.Metrics.TryAdd("Provider Standards", exportStandards.Count());
+                    evt.Metrics.TryAdd("Provider Frameworks", exportFrameworks.Count());
+
+                    DasProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(exportLocations);
+                    DasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(exportStandards, exportLocations);
+                    DasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(exportFrameworks, exportLocations);
+
+                    _telemetryClient.TrackEvent(evt);
+
+                    return DasProvider;
                 }
             }
-            return providers;
+            catch (Exception e)
+            {
+                throw new ProviderExportException(ukprn, e);
+            }
+
+            throw new ProviderNotFoundException(ukprn);
         }
+
         internal IEnumerable<Provider> GetProviderDetails(string UKPRN)
         {
-            return new ProviderServiceWrapper(_providerServiceSettings).GetProviderByUKPRN(UKPRN);
+            return _providerService.GetProviderByUKPRN(UKPRN);
         }
+
         internal IEnumerable<Apprenticeship> OnlyUpdatedCourses(IEnumerable<Apprenticeship> apprenticeships)
         {
             DateTime dateToCheckAgainst = DateTime.Now.Subtract(TimeSpan.FromDays(1));

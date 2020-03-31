@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS
 {
-    public interface IFramework
+    public interface IDasFramework
     {
-        IContact Contact { get; set; }
+        IDasContact Contact { get; set; }
 
         int FrameworkCode { get; set; }
 
         int? ProgType { get; set; }
 
-        List<LocationRef> Locations { get; set; }
+        List<DasLocationRef> Locations { get; set; }
         int? PathwayCode { get; set; }
 
         string FrameworkInfoUrl { get; set; }

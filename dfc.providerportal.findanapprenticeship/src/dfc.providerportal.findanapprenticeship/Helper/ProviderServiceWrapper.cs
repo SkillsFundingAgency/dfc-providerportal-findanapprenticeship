@@ -1,38 +1,74 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
+﻿using System;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Settings;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Dfc.ProviderPortal.Packages;
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
+using Dfc.Providerportal.FindAnApprenticeship.Models;
+using Dfc.Providerportal.FindAnApprenticeship.Settings;
+using LazyCache;
+using Microsoft.Extensions.Options;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
     public class ProviderServiceWrapper : IProviderServiceWrapper
     {
+        private readonly IProviderService _client;
+        private readonly IAppCache _cache;
         private readonly IProviderServiceSettings _settings;
-        public ProviderServiceWrapper(IProviderServiceSettings settings)
+
+        public ProviderServiceWrapper(IOptions<ProviderServiceSettings> settings, 
+            IAppCache cache,
+            IProviderService client)
         {
             Throw.IfNull(settings, nameof(settings));
-            _settings = settings;
+            Throw.IfNull(cache, nameof(cache));
+            Throw.IfNull(client, nameof(client));
+
+            _settings = settings.Value;
+            _cache = cache;
+            _client = client;
         }
+
+        /// <summary>
+        /// Mostly returns a single provider, but in some cases, we have multiple orgs with the same UKPRN. Quirky!
+        /// </summary>
+        /// <param name="UKPRN">The UKPRN to lookup</param>
+        /// <returns>A list of matching providers.</returns>
         public IEnumerable<Provider> GetProviderByUKPRN(string UKPRN)
         {
-            // Call service to get data
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _settings.ApiKey);
-            var response = client.GetAsync($"{_settings.ApiUrl}GetProviderByPRN?PRN={UKPRN}").Result;
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = response.Content.ReadAsStringAsync().Result;
-                if (!json.StartsWith("["))
-                    json = "[" + json + "]";
-                client.Dispose();
-                return JsonConvert.DeserializeObject<IEnumerable<Provider>>(json);
+                return this.GetAllProviders().Where(x => x.UnitedKingdomProviderReferenceNumber == UKPRN);
             }
-            client.Dispose();
-            return new List<Provider>();
+            catch (Exception e)
+            {
+                throw new ProviderServiceException(UKPRN, e);
+            }
 
+        }
+
+        public IEnumerable<Provider> GetAllProviders()
+        {
+            Func<IEnumerable<Provider>> activeProvidersGetter = () => _client.GetActiveProviders();
+
+            try
+            {
+                return _cache.GetOrAdd("ActiveProviders", activeProvidersGetter, DateTimeOffset.Now.AddHours(8));
+            }
+            catch (HttpRequestException e)
+            {
+                // add polly retry
+                throw new ProviderServiceException(e);
+            }
+            catch (Exception e)
+            {
+                throw new ProviderServiceException(e);
+            }
         }
     }
 }

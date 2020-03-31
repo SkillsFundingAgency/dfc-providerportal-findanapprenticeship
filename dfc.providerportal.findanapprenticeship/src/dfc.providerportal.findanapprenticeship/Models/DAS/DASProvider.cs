@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
 {
-    public class DASProvider : IDASProvider
+    public class DasProvider : IDasProvider
     {
-        public DASProvider()
+        public DasProvider()
         {
             
         }
@@ -20,9 +20,9 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.DAS
         public string Phone { get; set; }
         public double? LearnerSatisfaction { get; set; }
         public double? EmployerSatisfaction { get; set; }
-        public List<Standard> Standards { get; set; }
-        public List<Framework> Frameworks { get; set; }
-        public List<Location> Locations { get; set; }
+        public List<DasStandard> Standards { get; set; }
+        public List<DasFramework> Frameworks { get; set; }
+        public List<DasLocation> Locations { get; set; }
 
     }
 }
