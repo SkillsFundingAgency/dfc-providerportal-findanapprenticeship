@@ -21,7 +21,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
     public class ProviderExportException : ExportException
     {
-        public ProviderExportException(string id, Exception inner)
+        public ProviderExportException(int id, Exception inner)
             : base($"Error exporting provider {id} to DAS", inner)
         {
         }
@@ -58,7 +58,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
     public class ProviderNotFoundException : ExportException
     {
-        public ProviderNotFoundException(string id)
+        public ProviderNotFoundException(int id)
             : base($"Could not find provider details for UKPRN {id}")
         {
         }
@@ -100,7 +100,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         {
         }
 
-        public ProviderServiceException(string id, Exception e)
+        public ProviderServiceException(int id, Exception e)
             : base($"Could not find FE Choices data for UKPRN {id}", e)
         {
         }

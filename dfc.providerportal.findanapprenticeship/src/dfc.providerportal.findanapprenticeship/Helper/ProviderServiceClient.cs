@@ -37,17 +37,17 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         /// <summary>
         /// Mostly returns a single provider, but in some cases, we have multiple orgs with the same UKPRN. Quirky!
         /// </summary>
-        /// <param name="UKPRN">The UKPRN to lookup</param>
+        /// <param name="ukprn">The UKPRN to lookup</param>
         /// <returns>A list of matching providers.</returns>
-        public IEnumerable<Provider> GetProviderByUKPRN(string UKPRN)
+        public IEnumerable<Provider> GetProviderByUkprn(int ukprn)
         {
             try
             {
-                return this.GetAllProviders().Where(x => x.UnitedKingdomProviderReferenceNumber == UKPRN);
+                return this.GetAllProviders().Where(x => x.UnitedKingdomProviderReferenceNumber == $"{ukprn}");
             }
             catch (Exception e)
             {
-                throw new ProviderServiceException(UKPRN, e);
+                throw new ProviderServiceException(ukprn, e);
             }
 
         }
