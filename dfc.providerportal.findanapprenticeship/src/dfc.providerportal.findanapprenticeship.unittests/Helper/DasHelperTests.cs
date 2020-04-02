@@ -19,13 +19,13 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
         {
             private readonly DASHelper _dasHelper;
             private readonly TelemetryClient _telemetryClient;
-            private readonly IReferenceDataServiceWrapper _referenceDataServiceWrapper;
+            private readonly IReferenceDataServiceClient _referenceDataServiceClient;
 
             public DasHelperFixture()
             {
                 var _telemetryClient = new TelemetryClient();
-                _referenceDataServiceWrapper = Substitute.For<IReferenceDataServiceWrapper>();
-                _dasHelper = new DASHelper(_telemetryClient, _referenceDataServiceWrapper);
+                _referenceDataServiceClient = Substitute.For<IReferenceDataServiceClient>();
+                _dasHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
             }
 
             public DASHelper Sut => _dasHelper;
@@ -107,8 +107,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
                 var expected = location.Phone;
 
                 // Act
-                var locationsList = new List<ApprenticeshipLocation> { location };
-                var result = _sut.ApprenticeshipLocationsToLocations(locationsList);
+                var locationsList = new Dictionary<string, ApprenticeshipLocation>() { { "1234", location } };
+                var result = _sut.ApprenticeshipLocationsToLocations(1234, locationsList);
                 var actual = result.FirstOrDefault().Phone;
 
                 // Assert

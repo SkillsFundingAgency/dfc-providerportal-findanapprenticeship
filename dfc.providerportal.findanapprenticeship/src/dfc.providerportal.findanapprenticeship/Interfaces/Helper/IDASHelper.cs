@@ -10,9 +10,10 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
     public interface IDASHelper
     {
         DasProvider CreateDasProviderFromProvider(Provider provider);
-        List<DasLocation> ApprenticeshipLocationsToLocations(IEnumerable<ApprenticeshipLocation> locations);
-        List<DasStandard> ApprenticeshipsToStandards(IEnumerable<Apprenticeship> apprenticeships, IEnumerable<ApprenticeshipLocation> validLocations);
-        List<DasFramework> ApprenticeshipsToFrameworks(IEnumerable<Apprenticeship> apprenticeships, IEnumerable<ApprenticeshipLocation> validLocations);
-        List<DasLocation> RegionsToLocations(string[] regionCodes);
+        List<DasLocation> ApprenticeshipLocationsToLocations(int exportKey, Dictionary<string, ApprenticeshipLocation> locations);
+        List<DasStandard> ApprenticeshipsToStandards(int exportKey, IEnumerable<Apprenticeship> apprenticeships,
+            Dictionary<string, ApprenticeshipLocation> validLocations);
+        List<DasFramework> ApprenticeshipsToFrameworks(int exportKey, IEnumerable<Apprenticeship> apprenticeships,
+            Dictionary<string, ApprenticeshipLocation> validLocations);
     }
 }
