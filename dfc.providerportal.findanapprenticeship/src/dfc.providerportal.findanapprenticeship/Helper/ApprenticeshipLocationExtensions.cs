@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
@@ -14,16 +15,18 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
     {
         public static int ToAddressHash(this ApprenticeshipLocation location)
         {
+            var propertiesToHash = new List<string> {location.Name};
+
             if (location.Regions != null)
             {
-                return GenerateHash(string.Join(",", location.Regions));
+                propertiesToHash.Add(string.Join(",", location.Regions));
             }
-            return GenerateLatLonHash(location.Address?.Latitude, location.Address?.Longitude);
-        }
 
-        private static int GenerateLatLonHash(double? lat, double? lon)
-        {
-            return (int)(lat * 1000000) + (int)(lon * 1000000);
+            propertiesToHash.Add($"{location.Address?.Latitude}");
+            propertiesToHash.Add($"{location.Address?.Longitude}");
+            propertiesToHash.Add($"{location.Address?.Postcode}");
+
+            return GenerateHash(string.Join(", ", propertiesToHash));
         }
 
         private static int GenerateHash(string value)

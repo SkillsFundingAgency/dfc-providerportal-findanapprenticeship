@@ -16,27 +16,27 @@ using Microsoft.ApplicationInsights;
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
     // TODO: Polly Polly Polly!
-    public class ReferenceDataServiceWrapper : IReferenceDataServiceWrapper
+    public class ReferenceDataServiceClient : IReferenceDataServiceClient
     {
-        private readonly IReferenceDataService _client;
+        private readonly IReferenceDataService _service;
         private readonly IAppCache _cache;
         private readonly TelemetryClient _telemetryClient;
         private readonly IReferenceDataServiceSettings _settings;
-        public ReferenceDataServiceWrapper(
+        public ReferenceDataServiceClient(
             TelemetryClient telemetryClient, 
             IOptions<ReferenceDataServiceSettings> settings, 
             IAppCache cache,
-            IReferenceDataService client)
+            IReferenceDataService service)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));
             Throw.IfNull(settings, nameof(settings));
             Throw.IfNull(cache, nameof(cache));
-            Throw.IfNull(client, nameof(client));
+            Throw.IfNull(service, nameof(service));
 
             _telemetryClient = telemetryClient;
             _settings = settings.Value;
             _cache = cache;
-            _client = client;
+            _service = service;
         }
 
         public FeChoice GetFeChoicesByUKPRN(string UKPRN)
@@ -54,7 +54,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         public IEnumerable<FeChoice> GetAllFeChoiceData()
         {
-            Func<IEnumerable<FeChoice>> feChoicesGetter = () => _client.GetAllFeChoices();
+            Func<IEnumerable<FeChoice>> feChoicesGetter = () => _service.GetAllFeChoices();
 
             try
             {
