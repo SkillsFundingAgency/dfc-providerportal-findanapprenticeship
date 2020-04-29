@@ -9,14 +9,16 @@ using Microsoft.ApplicationInsights;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
     public class DASHelper : IDASHelper
     {
+        // TODO: Add to config
+        private const double NationalLat = 52.264858;
+        private const double NationalLon = -1.466888;
+
         private readonly TelemetryClient _telemetryClient;
         private readonly IReferenceDataServiceClient _referenceDataServiceClient;
         private int _intIdentifier { get; set; }
@@ -84,11 +86,13 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             {
                 foreach (var (key, currentLocation) in locations)
                 {
+                    // Regions
                     if (currentLocation.Regions != null)
                     {
                         DASLocations.AddRange(RegionsToLocations(exportKey, currentLocation.Regions));
                     }
-                    else
+                    // Venues
+                    else if (currentLocation.Address != null)
                     {
                         DASLocations.Add(new DasLocation
                         {
@@ -106,6 +110,19 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                             Email = currentLocation.Address?.Email,
                             Website = currentLocation.Address?.Website,
                             Phone = currentLocation.Phone ?? currentLocation.Address?.Phone,
+                        });
+                    }
+                    // National
+                    else if (currentLocation.National != null && currentLocation.National.Value)
+                    {
+                        DASLocations.Add(new DasLocation
+                        {
+                            Id = int.Parse(key),
+                            Address = new DasAddress()
+                            {
+                                Lat = NationalLat,
+                                Long = NationalLon,
+                            },
                         });
                     }
                 }
@@ -176,6 +193,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             var subRegionItemModels = new SelectRegionModel().RegionItems.SelectMany(x => x.SubRegion);
             foreach(var (key, currentLocation) in locations)
             {
+                // Regions
                 if(currentLocation.Regions != null)
                 {
                     foreach(var region in currentLocation.Regions)
@@ -185,31 +203,35 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                             .Select(y => $"{y.ApiLocationId.Value}")
                             .FirstOrDefault();
 
-                        if (!string.IsNullOrWhiteSpace(locationId))
+                        if (string.IsNullOrWhiteSpace(locationId)) continue;
+
+                        var regionId = locationId.Substring(locationId.Length - 3, 3);
+
+                        var regionIndex = $"{exportKey}2{regionId}";
+
+                        locationRefs.Add(new DasLocationRef
                         {
-                            var regionId = locationId.Substring(locationId.Length - 3, 3);
-
-                            var regionIndex = $"{exportKey}2{regionId}";
-
-                            locationRefs.Add(new DasLocationRef
-                            {
-                                Id = int.Parse(regionIndex),
-                                DeliveryModes = ConvertToApprenticeshipDeliveryModes(currentLocation),
-                                Radius = currentLocation.Radius ?? 0
-                            });
-                        }
+                            Id = int.Parse(regionIndex),
+                            DeliveryModes = ConvertToApprenticeshipDeliveryModes(currentLocation),
+                            Radius = currentLocation.Radius ?? 0
+                        });
                     }
                 }
+
                 else
                 {
+                    var isNational = currentLocation.National != null && currentLocation.National.Value;
+                    var radius = isNational
+                        ? 500 // National
+                        : currentLocation.Radius ?? 0;
+
                     locationRefs.Add(new DasLocationRef
                     {
                         Id = int.Parse(key),
                         DeliveryModes = ConvertToApprenticeshipDeliveryModes(currentLocation),
-                        Radius = currentLocation.Radius ?? 0
+                        Radius = radius
                     });
                 }
-
             }
             return locationRefs;
 
