@@ -194,9 +194,9 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             if (!providerDetailsList.Any()) throw new ProviderNotFoundException(ukprn);
             try
             {
-                var DasProvider = _DASHelper.CreateDasProviderFromProvider(providerDetailsList.FirstOrDefault());
+                var dasProvider = _DASHelper.CreateDasProviderFromProvider(providerDetailsList.FirstOrDefault());
 
-                if (DasProvider != null)
+                if (dasProvider != null)
                 {
                     var apprenticeshipLocations = apprenticeships.Where(x => x.ApprenticeshipLocations != null)
                         .SelectMany(x => x.ApprenticeshipLocations).Distinct(new ApprenticeshipLocationSameAddress());
@@ -213,13 +213,13 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                     evt.Metrics.TryAdd("Provider Standards", exportStandards.Count());
                     evt.Metrics.TryAdd("Provider Frameworks", exportFrameworks.Count());
 
-                    DasProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(exportKey, locationIndex);
-                    DasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(exportKey, exportStandards, locationIndex);
-                    DasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(exportKey, exportFrameworks, locationIndex);
+                    dasProvider.Locations = _DASHelper.ApprenticeshipLocationsToLocations(exportKey, locationIndex);
+                    dasProvider.Standards = _DASHelper.ApprenticeshipsToStandards(exportKey, exportStandards, locationIndex);
+                    dasProvider.Frameworks = _DASHelper.ApprenticeshipsToFrameworks(exportKey, exportFrameworks, locationIndex);
 
                     _telemetryClient.TrackEvent(evt);
 
-                    return DasProvider;
+                    return dasProvider;
                 }
             }
             catch (Exception e)
