@@ -12,11 +12,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         {
             var propertiesToHash = new List<string> {location.Name};
 
-            if (location.Radius.HasValue)
-            {
-                propertiesToHash.Add($"{location.Radius}");
-            }
-
             if (location.National.HasValue)
             {
                 propertiesToHash.Add($"{location.National}");
@@ -25,11 +20,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             if (location.Regions != null && location.Regions.Length > 0)
             {
                 propertiesToHash.Add(string.Join(",", location.Regions));
-            }
-
-            if (location.DeliveryModes != null)
-            {
-                propertiesToHash.Add(string.Join(",", location.DeliveryModes));
             }
 
             if (location.Address != null)
