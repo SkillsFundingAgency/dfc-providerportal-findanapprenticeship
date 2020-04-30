@@ -87,8 +87,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 foreach (var (key, currentLocation) in locations)
                 {
                     // Regions
-                    if (currentLocation.Regions != null)
                     {
+                    if (currentLocation.Regions != null && currentLocation.Regions.Length > 0)
                         DASLocations.AddRange(RegionsToLocations(exportKey, currentLocation.Regions));
                     }
                     // Venues
@@ -194,7 +194,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             foreach(var (key, currentLocation) in locations)
             {
                 // Regions
-                if(currentLocation.Regions != null)
+                if (currentLocation.Regions != null && currentLocation.Regions.Length > 0)
                 {
                     foreach(var region in currentLocation.Regions)
                     {

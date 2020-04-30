@@ -22,7 +22,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 propertiesToHash.Add($"{location.National}");
             }
 
-            if (location.Regions != null)
+            if (location.Regions != null && location.Regions.Length > 0)
             {
                 propertiesToHash.Add(string.Join(",", location.Regions));
             }
