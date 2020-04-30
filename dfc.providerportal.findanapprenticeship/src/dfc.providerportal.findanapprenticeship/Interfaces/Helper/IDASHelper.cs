@@ -12,8 +12,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
         DasProvider CreateDasProviderFromProvider(Provider provider);
         List<DasLocation> ApprenticeshipLocationsToLocations(int exportKey, Dictionary<string, ApprenticeshipLocation> locations);
         List<DasStandard> ApprenticeshipsToStandards(int exportKey, IEnumerable<Apprenticeship> apprenticeships,
-            Dictionary<string, ApprenticeshipLocation> uniqueProviderLocations);
+            Dictionary<string, ApprenticeshipLocation> validLocations);
         List<DasFramework> ApprenticeshipsToFrameworks(int exportKey, IEnumerable<Apprenticeship> apprenticeships,
-            Dictionary<string, ApprenticeshipLocation> uniqueProviderLocations);
+            Dictionary<string, ApprenticeshipLocation> validLocations);
     }
 }
