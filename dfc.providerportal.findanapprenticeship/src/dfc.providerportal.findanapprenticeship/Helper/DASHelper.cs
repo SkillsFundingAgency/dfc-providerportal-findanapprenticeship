@@ -305,11 +305,18 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         private static Dictionary<string, ApprenticeshipLocation> ValidateApprenticeshipLocations(Dictionary<string, ApprenticeshipLocation> validLocations, Apprenticeship apprenticeship)
         {
-            var activeLocations = new Dictionary<string, ApprenticeshipLocation>(validLocations
-                .Where(l =>
-                    apprenticeship.ApprenticeshipLocations.Contains(l.Value, new ApprenticeshipLocationSameAddress())));
+            var linkedLocations = new Dictionary<string, ApprenticeshipLocation>();
 
-            return activeLocations;
+            foreach (var currentLocation in apprenticeship.ApprenticeshipLocations)
+            {
+                var match = validLocations.SingleOrDefault(providerLocation =>
+                    currentLocation.ToAddressHash() == providerLocation.Value.ToAddressHash());
+
+                if (!match.Equals(default(KeyValuePair<string, ApprenticeshipLocation>)))
+                    linkedLocations.Add(match.Key, currentLocation);
+            }
+
+            return linkedLocations;
         }
 
         internal int GenerateIntIdentifier()
