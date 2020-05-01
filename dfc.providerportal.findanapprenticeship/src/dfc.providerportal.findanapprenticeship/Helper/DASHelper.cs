@@ -16,8 +16,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
     public class DASHelper : IDASHelper
     {
         // TODO: Add to config
-        private const double NationalLat = 52.264858;
-        private const double NationalLon = -1.466888;
+        private const double NationalLat = 52.564269;
+        private const double NationalLon = -1.466056;
         private readonly IReferenceDataServiceClient _referenceDataServiceClient;
 
         private readonly TelemetryClient _telemetryClient;
@@ -119,14 +119,14 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         }
 
         public List<DasStandard> ApprenticeshipsToStandards(int exportKey, IEnumerable<Apprenticeship> apprenticeships,
-            Dictionary<string, ApprenticeshipLocation> uniqueProviderLocations)
+            Dictionary<string, ApprenticeshipLocation> validLocations)
         {
             var standards = new List<DasStandard>();
             foreach (var apprenticeship in apprenticeships)
             {
                 if (!apprenticeship.StandardCode.HasValue) continue;
                 var apprenticeshipLocations =
-                    LinkApprenticeshipLocationsToProvider(uniqueProviderLocations, apprenticeship);
+                    LinkApprenticeshipLocationsToProvider(validLocations, apprenticeship);
 
                 standards.Add(new DasStandard
                 {
@@ -148,7 +148,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         public List<DasFramework> ApprenticeshipsToFrameworks(int exportKey,
             IEnumerable<Apprenticeship> apprenticeships,
-            Dictionary<string, ApprenticeshipLocation> uniqueProviderLocations)
+            Dictionary<string, ApprenticeshipLocation> validLocations)
         {
             var frameworks = new List<DasFramework>();
 
@@ -157,7 +157,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                 if (!apprenticeship.FrameworkCode.HasValue) continue;
 
                 var apprenticeshipLocations =
-                    LinkApprenticeshipLocationsToProvider(uniqueProviderLocations, apprenticeship);
+                    LinkApprenticeshipLocationsToProvider(validLocations, apprenticeship);
 
                 frameworks.Add(new DasFramework
                 {
@@ -205,7 +205,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                         {
                             Id = int.Parse(regionIndex),
                             DeliveryModes = ConvertToApprenticeshipDeliveryModes(currentLocation),
-                            Radius = currentLocation.Radius ?? 0
+                            Radius = currentLocation.Radius ?? 50 // TODO: Add to config
                         });
                     }
                 }
