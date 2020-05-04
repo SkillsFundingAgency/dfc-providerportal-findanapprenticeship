@@ -96,7 +96,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                                 County = currentLocation.Address?.County,
                                 Lat = currentLocation.Address?.Latitude,
                                 Long = currentLocation.Address?.Longitude,
-                                Postcode = currentLocation.Address?.Postcode
+                                Postcode = currentLocation.Address?.Postcode,
+                                Town = currentLocation.Address?.Town
                             },
                             Name = currentLocation.Name,
                             Email = currentLocation.Address?.Email,
