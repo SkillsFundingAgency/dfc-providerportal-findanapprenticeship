@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Security.Cryptography;
 using System.Text;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
-using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
-using Newtonsoft.Json;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
@@ -17,14 +12,22 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         {
             var propertiesToHash = new List<string> {location.Name};
 
-            if (location.Regions != null)
+            if (location.National.HasValue)
+            {
+                propertiesToHash.Add($"{location.National}");
+            }
+
+            if (location.Regions != null && location.Regions.Length > 0)
             {
                 propertiesToHash.Add(string.Join(",", location.Regions));
             }
 
-            propertiesToHash.Add($"{location.Address?.Latitude}");
-            propertiesToHash.Add($"{location.Address?.Longitude}");
-            propertiesToHash.Add($"{location.Address?.Postcode}");
+            if (location.Address != null)
+            {
+                propertiesToHash.Add($"{location.Address?.Latitude}");
+                propertiesToHash.Add($"{location.Address?.Longitude}");
+                propertiesToHash.Add($"{location.Address?.Postcode}");
+            }
 
             return GenerateHash(string.Join(", ", propertiesToHash));
         }
