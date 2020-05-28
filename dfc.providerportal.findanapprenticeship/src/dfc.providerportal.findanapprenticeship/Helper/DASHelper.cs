@@ -19,6 +19,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         private const double NationalLat = 52.564269;
         private const double NationalLon = -1.466056;
         private readonly IReferenceDataServiceClient _referenceDataServiceClient;
+        private readonly 
 
         private readonly TelemetryClient _telemetryClient;
 
@@ -136,7 +137,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     StandardInfoUrl = apprenticeship.Url,
                     Contact = new DasContact
                     {
-                        ContactUsUrl = apprenticeship.Url,
+                        ContactUsUrl = apprenticeship.ContactWebsite,
                         Email = apprenticeship.ContactEmail,
                         Phone = apprenticeship.ContactTelephone
                     },
