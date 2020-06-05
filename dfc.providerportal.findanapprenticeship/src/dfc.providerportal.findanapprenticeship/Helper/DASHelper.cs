@@ -216,7 +216,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     var isNational = currentLocation.National != null && currentLocation.National.Value;
                     var radius = isNational
                         ? 500 // National
-                        : currentLocation.Radius ?? 10;
+                        : currentLocation.Radius ?? 30;
 
                     locationRefs.Add(new DasLocationRef
                     {
