@@ -314,7 +314,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                     currentLocation.ToAddressHash() == providerLocation.Value.ToAddressHash());
 
                 if (!match.Equals(default(KeyValuePair<string, ApprenticeshipLocation>)))
-                    linkedLocations.Add(match.Key, currentLocation);
+                    linkedLocations.TryAdd(match.Key, currentLocation);
             }
 
             return linkedLocations;
