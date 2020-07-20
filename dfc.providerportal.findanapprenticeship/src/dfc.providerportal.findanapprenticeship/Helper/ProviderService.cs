@@ -27,7 +27,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         {
             Console.WriteLine($"[{DateTime.UtcNow:G}] Cache missing or expired... Refreshing Active Providers cache");
 
-            var response = _httpClient.GetAsync($"GetActiveProviders").Result;
+            var response = await _httpClient.GetAsync($"GetActiveProviders");
 
             response.EnsureSuccessStatusCode();
 
