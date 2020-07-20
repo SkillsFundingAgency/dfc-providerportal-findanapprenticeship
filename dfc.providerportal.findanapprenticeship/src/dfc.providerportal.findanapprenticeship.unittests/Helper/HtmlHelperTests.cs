@@ -19,7 +19,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
                 "<p>Second paragraph.This para has a line break <br /><blockquote>with a quote</blockquote><br /> in the middle</p>";
 
             [Fact]
-            public async Task ShouldRemoveAllHtmlTags()
+            public void ShouldRemoveAllHtmlTags()
             {
                 // arrange
                 var expected = "some html content with formatted text. Second paragraph. This para has a line break with a quote in the middle";
@@ -34,7 +34,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
             public class WhenPreserveLineBreaksIsTrue
             {
                 [Fact]
-                public async Task LineBreaksShouldBePreserved()
+                public void LineBreaksShouldBePreserved()
                 {
                     // arrange
                     var expected = "some html content with formatted text.\r\n\r\nSecond paragraph. This para has a line break \r\n\r\nwith a quote\r\n\r\n in the middle";
