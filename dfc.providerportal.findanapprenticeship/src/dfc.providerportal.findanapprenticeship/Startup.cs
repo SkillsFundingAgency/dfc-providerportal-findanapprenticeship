@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using LazyCache;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +22,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship
                 .AddApplicationInsightsTelemetry()
                 .AddMvcCore()
                 .SetCompatibilityVersion(CompatibilityVersion.Latest)
-                .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
+                .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
                 .AddApiExplorer();
 
             services.AddLazyCache();
