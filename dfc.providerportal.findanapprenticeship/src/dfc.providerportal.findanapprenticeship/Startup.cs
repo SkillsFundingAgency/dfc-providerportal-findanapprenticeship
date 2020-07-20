@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
@@ -21,7 +20,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship
             services
                 .AddApplicationInsightsTelemetry()
                 .AddMvcCore()
-                .SetCompatibilityVersion(CompatibilityVersion.Latest)
                 .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
                 .AddApiExplorer();
 
