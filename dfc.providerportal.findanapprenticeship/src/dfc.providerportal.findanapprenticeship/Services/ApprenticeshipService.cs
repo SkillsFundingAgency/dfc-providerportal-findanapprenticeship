@@ -1,4 +1,11 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Helper;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Dfc.Providerportal.FindAnApprenticeship.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
@@ -10,19 +17,10 @@ using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.ProviderPortal.Packages;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection.Metadata;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using LazyCache;
+using Microsoft.Extensions.Options;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
-using Newtonsoft.Json.Converters;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Services
 {
@@ -32,7 +30,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         private readonly ICosmosDbHelper _cosmosDbHelper;
         private readonly IDASHelper _DASHelper;
         private readonly ICosmosDbCollectionSettings _cosmosSettings;
-        private readonly IProviderServiceSettings _providerServiceSettings;
         private readonly IProviderServiceClient _providerService;
         private readonly IAppCache _cache;
 
@@ -115,7 +112,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             try
             {
                 var timer = Stopwatch.StartNew();
-                var export = new List<DasProvider>();
+                var export = new ConcurrentBag<DasProvider>();
 
                 var evt = new EventTelemetry { Name = "ApprenticeshipsToDasProviders" };
 
@@ -131,8 +128,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                 evt.Metrics.TryAdd("Apprenticeships", apprenticeships.Count);
                 evt.Metrics.TryAdd("Providers", apprenticeshipProviders.Count);
 
-                Console.WriteLine(
-                    $"[{DateTime.UtcNow:G}] Found {apprenticeships.Count} apprenticeships for {apprenticeshipProviders.Count} Providers");
+                Console.WriteLine($"[{DateTime.UtcNow:G}] Found {apprenticeships.Count} apprenticeships for {apprenticeshipProviders.Count} Providers");
 
                 int success = 0, failure = 0, count = 1;
 
@@ -147,24 +143,29 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                         var provider = ExportProvider(providerApprenticeships, currentIndex.Value, currentIndex.Key);
 
                         export.Add(provider);
-                        success++;
-                        Console.WriteLine(
-                            $"[{DateTime.UtcNow:G}][INFO] Exported {currentIndex.Value} ({count} of {apprenticeshipProviders.Count})");
+
+                        Interlocked.Increment(ref success);
+
+                        Console.WriteLine($"[{DateTime.UtcNow:G}][INFO] Exported {currentIndex.Value} ({count} of {apprenticeshipProviders.Count})");
                     }
                     catch (ExportException e)
                     {
-                        failure++;
+                        Interlocked.Increment(ref failure);
+
                         _telemetryClient.TrackException(e);
-                        Console.WriteLine(
-                            $"[{DateTime.UtcNow:G}][ERROR] Failed to export {currentIndex.Value} ({count} of {apprenticeshipProviders.Count})");
+
+                        Console.WriteLine($"[{DateTime.UtcNow:G}][ERROR] Failed to export {currentIndex.Value} ({count} of {apprenticeshipProviders.Count})");
                     }
 
-                    count++;
+                    Interlocked.Increment(ref count);
                 });
 
                 Console.WriteLine($"[{DateTime.UtcNow:G}] Exported {success} Providers in {timer.Elapsed.TotalSeconds} seconds.");
+
                 if (failure > 1)
+                {
                     Console.WriteLine($"[{DateTime.UtcNow:G}] [WARNING] Encountered {failure} errors that need attention");
+                }
 
                 timer.Stop();
 
@@ -173,7 +174,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                 evt.Metrics.TryAdd("Export failures", failure);
                 _telemetryClient.TrackEvent(evt);
 
-                return export;
+                return export.OrderBy(p => p.UKPRN).ToList();
             }
             catch (Exception e)
             {
