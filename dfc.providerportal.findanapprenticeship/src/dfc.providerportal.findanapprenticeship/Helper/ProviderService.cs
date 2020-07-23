@@ -20,7 +20,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         public IEnumerable<Provider> GetActiveProviders()
         {
-            return GetActiveProvidersAsync().Result;
+            return GetActiveProvidersAsync().GetAwaiter().GetResult();
         }
 
         public async Task<IEnumerable<Provider>> GetActiveProvidersAsync()
@@ -31,7 +31,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             response.EnsureSuccessStatusCode();
 
-            var json = response.Content.ReadAsStringAsync().Result;
+            var json = await response.Content.ReadAsStringAsync();
             List<Provider> providers = JsonConvert.DeserializeObject<IEnumerable<Provider>>(json).ToList();
 
             Console.WriteLine($"[{DateTime.UtcNow:G}] Loaded {providers.Count} active Providers to cache");
