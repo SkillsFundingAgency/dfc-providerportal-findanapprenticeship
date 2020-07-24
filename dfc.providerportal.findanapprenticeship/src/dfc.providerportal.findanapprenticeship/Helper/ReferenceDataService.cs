@@ -20,7 +20,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
         public IEnumerable<FeChoice> GetAllFeChoices()
         {
-            return GetAllFeChoicesAsync().Result;
+            return GetAllFeChoicesAsync().GetAwaiter().GetResult();
         }
 
         public async Task<IEnumerable<FeChoice>> GetAllFeChoicesAsync()
@@ -32,7 +32,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             response.EnsureSuccessStatusCode();
 
-            var json = response.Content.ReadAsStringAsync().Result;
+            var json = await response.Content.ReadAsStringAsync();
             List<FeChoice> feChoices = JsonConvert.DeserializeObject<IEnumerable<FeChoice>>(json).ToList();
 
             Console.WriteLine($"[{DateTime.UtcNow:G}] Loaded {feChoices.Count} FE Choices to cache");
