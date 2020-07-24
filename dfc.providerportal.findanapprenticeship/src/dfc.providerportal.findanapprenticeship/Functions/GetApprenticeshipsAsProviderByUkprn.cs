@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
-using Dfc.ProviderPortal.Packages.AzureFunctions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -12,35 +11,51 @@ using Microsoft.Extensions.Logging;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 {
-    public static class GetApprenticeshipsAsProviderByUkprn
+    public class GetApprenticeshipsAsProviderByUkprn
     {
+        private readonly IApprenticeshipService _apprenticeshipService;
+
+        public GetApprenticeshipsAsProviderByUkprn(IApprenticeshipService apprenticeshipService)
+        {
+            _apprenticeshipService = apprenticeshipService ?? throw new ArgumentNullException(nameof(apprenticeshipService));
+        }
+
         [FunctionName("GetApprenticeshipsAsProviderByUkprn")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]
-            HttpRequest req,
-            ILogger log,
-            [Inject] IApprenticeshipService apprenticeshipService)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)]HttpRequest req, ILogger log)
         {
             string fromQuery = req.Query["ukprn"];
 
             if (string.IsNullOrWhiteSpace(fromQuery))
+            {
                 return new BadRequestObjectResult($"Empty or missing UKPRN value.");
+            }
 
             if (!int.TryParse(fromQuery, out int ukprn))
+            {
                 return new BadRequestObjectResult($"Invalid UKPRN value, expected a valid integer");
-
+            }
 
             try
             {
-                var persisted = (List<Apprenticeship>) await apprenticeshipService.GetApprenticeshipsByUkprn(ukprn);
-                if (persisted == null)
-                    return new EmptyResult();
-                var providers = apprenticeshipService.ApprenticeshipsToDasProviders(persisted);
-                return new OkObjectResult(providers);
+                log.LogInformation($"[{DateTime.UtcNow:G}] Retrieving Apprenticeships for {nameof(ukprn)} {{{nameof(ukprn)}}}...", ukprn);
 
+                var persisted = (List<Apprenticeship>)await _apprenticeshipService.GetApprenticeshipsByUkprn(ukprn);
+                
+                if (persisted == null)
+                {
+                    return new EmptyResult();
+                }
+                    
+                var providers = _apprenticeshipService.ApprenticeshipsToDasProviders(persisted);
+
+                return new OkObjectResult(providers);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return new InternalServerErrorObjectResult(e);
+                return new ObjectResult(ex)
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
             }
         }
     }

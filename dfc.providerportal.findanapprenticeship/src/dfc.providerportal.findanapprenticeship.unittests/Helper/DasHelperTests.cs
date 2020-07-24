@@ -47,7 +47,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
 
             [Theory]
             [JsonFileData("TestData/Location/Locations.json", "Locations")]
-            public async Task AllMatchingModesShouldMapCorrectly(ApprenticeshipLocation location)
+            public void AllMatchingModesShouldMapCorrectly(ApprenticeshipLocation location)
             {
                 // arrange
                 List<string> expected = _validDeliveryModes;
