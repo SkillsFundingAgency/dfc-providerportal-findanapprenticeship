@@ -1,9 +1,8 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
+﻿using System.Collections.Generic;
+using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
+using Dfc.Providerportal.FindAnApprenticeship.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Controller
 {
@@ -25,9 +24,9 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Controller
 
         [Route("GetApprenticeshipsAsProviderByUkprn")]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<DasProvider>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(DasProviderResultViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(DasProviderResultViewModel), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(DasProviderResultViewModel), StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetApprenticeshipsAsProviderByUkprn()
         {
