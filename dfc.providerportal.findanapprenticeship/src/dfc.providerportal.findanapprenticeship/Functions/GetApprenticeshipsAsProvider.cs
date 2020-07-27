@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +52,10 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                     }
 
                     var providersExportKey = $"providers-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}.json";
-                    var providers = JsonConvert.SerializeObject(_apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships), new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+
+                    var providers = JsonConvert.SerializeObject(
+                        _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships).Where(r => r.Success).Select(r => r.Result),
+                        new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
                     await UploadProvidersExport(providersExportKey, providers, log);
 

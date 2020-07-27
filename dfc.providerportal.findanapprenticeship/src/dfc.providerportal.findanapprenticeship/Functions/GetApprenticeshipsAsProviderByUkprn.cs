@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
+using Dfc.Providerportal.FindAnApprenticeship.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -27,28 +29,28 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 
             if (string.IsNullOrWhiteSpace(fromQuery))
             {
-                return new BadRequestObjectResult($"Empty or missing UKPRN value.");
+                return new BadRequestObjectResult(ErrorResult("Empty or missing UKPRN value."));
             }
 
             if (!int.TryParse(fromQuery, out int ukprn))
             {
-                return new BadRequestObjectResult($"Invalid UKPRN value, expected a valid integer");
+                return new BadRequestObjectResult(ErrorResult("Invalid UKPRN value, expected a valid integer."));
             }
 
             try
             {
                 log.LogInformation($"[{DateTime.UtcNow:G}] Retrieving Apprenticeships for {nameof(ukprn)} {{{nameof(ukprn)}}}...", ukprn);
 
-                var persisted = (List<Apprenticeship>)await _apprenticeshipService.GetApprenticeshipsByUkprn(ukprn);
+                var apprenticeships = (List<Apprenticeship>)await _apprenticeshipService.GetApprenticeshipsByUkprn(ukprn);
                 
-                if (persisted == null)
+                if (!apprenticeships.Any())
                 {
-                    return new EmptyResult();
+                    return new NotFoundObjectResult(ErrorResult($"No apprentiships found for UKPRN {ukprn}."));
                 }
                     
-                var providers = _apprenticeshipService.ApprenticeshipsToDasProviders(persisted);
+                var result = _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships).Single();
 
-                return new OkObjectResult(providers);
+                return new OkObjectResult(DasProviderResultViewModel.FromDasProviderResult(result));
             }
             catch (Exception ex)
             {
@@ -57,6 +59,15 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                     StatusCode = StatusCodes.Status500InternalServerError
                 };
             }
+        }
+
+        private static DasProviderResultViewModel ErrorResult(params string[] errors)
+        {
+            return new DasProviderResultViewModel
+            {
+                Success = false,
+                Messages = errors
+            };
         }
     }
 }
