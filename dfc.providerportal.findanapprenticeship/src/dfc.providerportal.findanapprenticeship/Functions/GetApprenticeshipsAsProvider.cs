@@ -37,23 +37,21 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
         [FunctionName("GetApprenticeshipsAsProvider")]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "bulk/providers")]HttpRequest req, ILogger log)
         {
-            List<Apprenticeship> persisted = null;
-
             try
             {
-                log.LogInformation($"[{DateTime.UtcNow:G}] Retrieving Apprenticeships...");
-                
-                persisted = (List<Apprenticeship>)await _apprenticeshipService.GetLiveApprenticeships();
-                
-                if (persisted == null)
-                {
-                    return new EmptyResult();
-                }
-
                 var result = await _cache.GetOrAddAsync<(string ExportKey, string Value)>("DasProviders", async () =>
                 {
+                    log.LogInformation($"Retrieving Apprenticeships...");
+
+                    var apprenticeships = (List<Apprenticeship>)await _apprenticeshipService.GetLiveApprenticeships();
+
+                    if (apprenticeships == null)
+                    {
+                        throw new NullReferenceException($"{nameof(apprenticeships)} cannot be null.");
+                    }
+
                     var providersExportKey = $"providers-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}.json";
-                    var providers = JsonConvert.SerializeObject(_apprenticeshipService.ApprenticeshipsToDasProviders(persisted), new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+                    var providers = JsonConvert.SerializeObject(_apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships), new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
                     await UploadProvidersExport(providersExportKey, providers, log);
 
