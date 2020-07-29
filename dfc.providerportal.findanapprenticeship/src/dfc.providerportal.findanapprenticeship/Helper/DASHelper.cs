@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models.Regions;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
