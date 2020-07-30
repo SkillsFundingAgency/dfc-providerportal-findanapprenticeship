@@ -19,7 +19,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
                 string _textToProcess = "Content with no spaces between full stops.This should be spaced correctly. As should this...";
 
                 [Fact]
-                public async Task SpaceIsCorrectlyEnforced()
+                public void SpaceIsCorrectlyEnforced()
                 {
                     // arrange
                     var expected = "Content with no spaces between full stops. This should be spaced correctly. As should this...";
