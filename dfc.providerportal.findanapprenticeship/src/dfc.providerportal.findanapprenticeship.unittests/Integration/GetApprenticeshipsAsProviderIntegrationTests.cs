@@ -34,7 +34,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
         private readonly IAppCache _appCache;
         private readonly Mock<IConfiguration> _configuration;
         private readonly Mock<ICosmosDbHelper> _cosmosDbHelper;
-        private readonly Mock<IOptions<CosmosDbCollectionSettings>> _cosmosSettings;
+        private readonly IOptions<CosmosDbCollectionSettings> _cosmosSettings;
 
         private readonly Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>> _referenceDataResponse;
         private readonly IReferenceDataService _referenceDataService;
@@ -53,10 +53,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _appCache = new CachingService();
             _configuration = new Mock<IConfiguration>();
             _cosmosDbHelper = new Mock<ICosmosDbHelper>();
-            _cosmosSettings = new Mock<IOptions<CosmosDbCollectionSettings>>();
-
-            _cosmosSettings.Setup(s => s.Value)
-                .Returns(new CosmosDbCollectionSettings());
+            _cosmosSettings = Options.Create(new CosmosDbCollectionSettings());
 
             _referenceDataResponse = new Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>>();
             _referenceDataService = new ReferenceDataService(new HttpClient(new MockHttpMessageHandler(_referenceDataResponse.Object)) { BaseAddress = new Uri("https://test.com") });
@@ -66,7 +63,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _providerServiceClient = new ProviderServiceClient(new Mock<IOptions<ProviderServiceSettings>>().Object, _appCache, _providerService);
             
             _DASHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
-            _apprenticeshipService = new ApprenticeshipService(_telemetryClient, _cosmosDbHelper.Object, _cosmosSettings.Object, _providerServiceClient, _DASHelper, _appCache);
+            _apprenticeshipService = new ApprenticeshipService(_telemetryClient, _cosmosDbHelper.Object, _cosmosSettings, _providerServiceClient, _DASHelper, _appCache);
 
             _function = new GetApprenticeshipsAsProvider(_appCache, _apprenticeshipService, _configuration.Object);
         }
@@ -77,17 +74,17 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _referenceDataResponse.Setup(s => s.Invoke(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
                 .Returns<HttpRequestMessage, CancellationToken>(async (r, ct) => new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent(await File.ReadAllTextAsync(@"Integration\fechoices.json"))
+                    Content = new StringContent(await File.ReadAllTextAsync("Integration/fechoices.json"))
                 });
 
             _providerResponse.Setup(s => s.Invoke(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
                 .Returns<HttpRequestMessage, CancellationToken>(async (r, ct) => new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent(await File.ReadAllTextAsync(@"Integration\providers.json"))
+                    Content = new StringContent(await File.ReadAllTextAsync("Integration/providers.json"))
                 });
 
             _cosmosDbHelper.Setup(s => s.GetLiveApprenticeships(It.IsAny<DocumentClient>(), It.IsAny<string>()))
-                .Returns(() => JsonConvert.DeserializeObject<List<Apprenticeship>>(File.ReadAllText(@"Integration\apprenticeships.json")));
+                .Returns(() => JsonConvert.DeserializeObject<List<Apprenticeship>>(File.ReadAllText("Integration/apprenticeships.json")));
 
             var request = new Mock<HttpRequest>();
 
@@ -99,14 +96,14 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             contentResult.StatusCode.Should().Be(StatusCodes.Status200OK);
 
             var resultJToken = JToken.Parse(contentResult.Content);
-            var expectedResultJToken = JToken.Parse(await File.ReadAllTextAsync(@"Integration\expectedresults.json"));
+            var expectedResultJToken = JToken.Parse(await File.ReadAllTextAsync("Integration/expectedresults.json"));
 
             var resultIsExpected = JToken.DeepEquals(resultJToken, expectedResultJToken);
 
             if (!resultIsExpected)
             {
                 // Output the results so we can investigate further
-                await File.WriteAllTextAsync(@"Integration\results.json", JsonConvert.SerializeObject(resultJToken, Formatting.Indented));
+                await File.WriteAllTextAsync("Integration/results.json", JsonConvert.SerializeObject(resultJToken, Formatting.Indented));
             }
 
             resultIsExpected.Should().BeTrue();
