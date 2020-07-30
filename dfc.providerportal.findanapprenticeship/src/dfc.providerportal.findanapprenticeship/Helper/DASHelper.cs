@@ -15,11 +15,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
     public class DASHelper : IDASHelper
     {
+        private const int _intIdentifier = 300000;
+
         // TODO: Add to config
         private const double NationalLat = 52.564269;
         private const double NationalLon = -1.466056;
         private readonly IReferenceDataServiceClient _referenceDataServiceClient;
-
         private readonly TelemetryClient _telemetryClient;
 
         public DASHelper(TelemetryClient telemetryClient, IReferenceDataServiceClient referenceDataServiceClient)
@@ -29,14 +30,11 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
             _telemetryClient = telemetryClient;
             _referenceDataServiceClient = referenceDataServiceClient;
-            _intIdentifier = 300000;
         }
-
-        private int _intIdentifier { get; set; }
 
         [Obsolete("Please don't use this any more, instead replace with a mapper class using something like AutoMapper",
             false)]
-        public DasProvider CreateDasProviderFromProvider(Provider provider)
+        public DasProvider CreateDasProviderFromProvider(int exportKey, Provider provider)
         {
             if (!int.TryParse(provider.UnitedKingdomProviderReferenceNumber, out var ukprn))
                 throw new InvalidUkprnException(provider.UnitedKingdomProviderReferenceNumber);
@@ -52,7 +50,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 
                 return new DasProvider
                 {
-                    Id = provider.ProviderId ?? GenerateIntIdentifier(),
+                    Id = provider.ProviderId ?? _intIdentifier + exportKey,
                     Email = contactDetails?.ContactEmail,
                     EmployerSatisfaction = feChoice?.EmployerSatisfaction,
                     LearnerSatisfaction = feChoice?.LearnerSatisfaction,
@@ -318,11 +316,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             }
 
             return linkedLocations;
-        }
-
-        internal int GenerateIntIdentifier()
-        {
-            return _intIdentifier++;
         }
     }
 }

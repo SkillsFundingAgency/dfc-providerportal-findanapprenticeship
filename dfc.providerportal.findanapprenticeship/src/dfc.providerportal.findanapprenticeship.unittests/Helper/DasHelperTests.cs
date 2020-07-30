@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Dfc.Providerportal.FindAnApprenticeship.Models;
-using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
+using System.Linq;
 using Dfc.Providerportal.FindAnApprenticeship.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
+using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
-using Xunit;
-using NSubstitute;
+using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Microsoft.ApplicationInsights;
+using Moq;
+using Xunit;
 
 namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
 {
@@ -19,13 +18,13 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
         {
             private readonly DASHelper _dasHelper;
             private readonly TelemetryClient _telemetryClient;
-            private readonly IReferenceDataServiceClient _referenceDataServiceClient;
+            private readonly Mock<IReferenceDataServiceClient> _referenceDataServiceClient;
 
             public DasHelperFixture()
             {
                 var _telemetryClient = new TelemetryClient();
-                _referenceDataServiceClient = Substitute.For<IReferenceDataServiceClient>();
-                _dasHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
+                _referenceDataServiceClient = new Mock<IReferenceDataServiceClient>();
+                _dasHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient.Object);
             }
 
             public DASHelper Sut => _dasHelper;
@@ -47,7 +46,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
 
             [Theory]
             [JsonFileData("TestData/Location/Locations.json", "Locations")]
-            public async Task AllMatchingModesShouldMapCorrectly(ApprenticeshipLocation location)
+            public void AllMatchingModesShouldMapCorrectly(ApprenticeshipLocation location)
             {
                 // arrange
                 List<string> expected = _validDeliveryModes;
@@ -81,7 +80,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
                         : contactDetails.ContactTelephone2;
 
                 // Act
-                var result = _sut.CreateDasProviderFromProvider(provider);
+                var result = _sut.CreateDasProviderFromProvider(123, provider);
                 var actual = result.Phone;
 
                 // Assert
