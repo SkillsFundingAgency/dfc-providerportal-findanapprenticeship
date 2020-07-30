@@ -47,7 +47,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 
                     if (apprenticeships == null)
                     {
-                        throw new NullReferenceException($"{nameof(apprenticeships)} cannot be null.");
+                        throw new Exception($"{nameof(apprenticeships)} cannot be null.");
                     }
 
                     var providersExportKey = $"providers-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}.json";
