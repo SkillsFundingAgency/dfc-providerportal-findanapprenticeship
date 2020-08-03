@@ -5,9 +5,10 @@ using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
+using Dfc.Providerportal.FindAnApprenticeship.Storage;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 namespace Dfc.Providerportal.FindAnApprenticeship
@@ -68,6 +69,13 @@ namespace Dfc.Providerportal.FindAnApprenticeship
 
             services.AddSingleton<IReferenceDataServiceClient, ReferenceDataServiceClient>();
             services.AddSingleton<IProviderServiceClient, ProviderServiceClient>();
+            services.AddSingleton<Func<DateTimeOffset>>(() => DateTimeOffset.UtcNow);
+            services.AddSingleton<IBlobStorageClient>(s =>
+                new AzureBlobStorageClient(
+                    new AzureBlobStorageClientOptions(
+                        s.GetRequiredService<IConfiguration>().GetValue<string>("AzureWebJobsStorage"),
+                        "fatp-providersexport")));
+
             services.AddScoped<ICosmosDbHelper, CosmosDbHelper>();
             services.AddScoped<IDASHelper, DASHelper>();
             services.AddScoped<IApprenticeshipService, ApprenticeshipService>();
