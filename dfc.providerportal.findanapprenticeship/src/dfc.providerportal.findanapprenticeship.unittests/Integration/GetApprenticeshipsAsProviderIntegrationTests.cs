@@ -5,6 +5,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Functions;
 using Dfc.Providerportal.FindAnApprenticeship.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
@@ -12,13 +15,15 @@ using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
+using Dfc.Providerportal.FindAnApprenticeship.Storage;
 using FluentAssertions;
 using LazyCache;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Timers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -32,7 +37,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
     {
         private readonly TelemetryClient _telemetryClient;
         private readonly IAppCache _appCache;
-        private readonly Mock<IConfiguration> _configuration;
+        private readonly Mock<Func<DateTimeOffset>> _nowUtc;
+        private readonly Mock<IBlobStorageClient> _blobStorageClient;
         private readonly Mock<ICosmosDbHelper> _cosmosDbHelper;
         private readonly IOptions<CosmosDbCollectionSettings> _cosmosSettings;
 
@@ -45,13 +51,15 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
         private readonly IDASHelper _DASHelper;
         private readonly IApprenticeshipService _apprenticeshipService;
 
-        private readonly GetApprenticeshipsAsProvider _function;
+        private readonly GenerateProviderExportFunction _generateProviderExportFunction;
+        private readonly GetApprenticeshipsAsProvider _getApprenticeshipAsProviderFunction;
 
         public GetApprenticeshipsAsProviderIntegrationTests()
         {
             _telemetryClient = new TelemetryClient();
             _appCache = new CachingService();
-            _configuration = new Mock<IConfiguration>();
+            _nowUtc = new Mock<Func<DateTimeOffset>>();
+            _blobStorageClient = new Mock<IBlobStorageClient>();
             _cosmosDbHelper = new Mock<ICosmosDbHelper>();
             _cosmosSettings = Options.Create(new CosmosDbCollectionSettings());
 
@@ -65,12 +73,18 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _DASHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
             _apprenticeshipService = new ApprenticeshipService(_telemetryClient, _cosmosDbHelper.Object, _cosmosSettings, _providerServiceClient, _DASHelper, _appCache);
 
-            _function = new GetApprenticeshipsAsProvider(_appCache, _apprenticeshipService, _configuration.Object);
+            _generateProviderExportFunction = new GenerateProviderExportFunction(_apprenticeshipService, _blobStorageClient.Object);
+            _getApprenticeshipAsProviderFunction = new GetApprenticeshipsAsProvider(_blobStorageClient.Object, _nowUtc.Object);
         }
 
         [Fact]
         public async Task Run_ReturnsExpectedResult()
         {
+            var now = DateTimeOffset.Now;
+
+            _nowUtc.Setup(s => s.Invoke())
+                .Returns(now);
+
             _referenceDataResponse.Setup(s => s.Invoke(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
                 .Returns<HttpRequestMessage, CancellationToken>(async (r, ct) => new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -86,16 +100,43 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _cosmosDbHelper.Setup(s => s.GetLiveApprenticeships(It.IsAny<DocumentClient>(), It.IsAny<string>()))
                 .Returns(() => JsonConvert.DeserializeObject<List<Apprenticeship>>(File.ReadAllText("Integration/apprenticeships.json")));
 
-            var request = new Mock<HttpRequest>();
+            var blobClient = new Mock<BlobClient>();
+            var blobBytes = default(byte[]);
 
-            var result = await _function.Run(request.Object, NullLogger.Instance);
+            _blobStorageClient.Setup(s => s.GetBlobClient(It.Is<string>(blobName => blobName == new ExportKey(now))))
+                .Returns(blobClient.Object);
 
-            var contentResult = result.Should().BeOfType<ContentResult>().Subject;
+            blobClient.Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .Callback<Stream, CancellationToken>((s, ct) =>
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        s.CopyTo(ms);
+                        blobBytes = ms.ToArray();
+                    }
+                });
+
+            blobClient.Setup(s => s.DownloadAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() =>
+                {
+                    var response = new Mock<Response<BlobDownloadInfo>>();
+
+                    response.SetupGet(s => s.Value)
+                        .Returns(BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream(blobBytes)));
+
+                    return response.Object;
+                });
+
+            await _generateProviderExportFunction.Run(new TimerInfo(new ScheduleStub(), new ScheduleStatus()), NullLogger.Instance, CancellationToken.None);
+
+            var result = await _getApprenticeshipAsProviderFunction.Run(new Mock<HttpRequest>().Object, NullLogger.Instance, CancellationToken.None);
+
+            var contentResult = result.Should().BeOfType<FileStreamResult>().Subject;
             contentResult.Should().NotBeNull();
             contentResult.ContentType.Should().Be("application/json");
-            contentResult.StatusCode.Should().Be(StatusCodes.Status200OK);
 
-            var resultJToken = JToken.Parse(contentResult.Content);
+            using var sr = new StreamReader(contentResult.FileStream);
+            var resultJToken = JToken.Parse(await sr.ReadToEndAsync());
             var expectedResultJToken = JToken.Parse(await File.ReadAllTextAsync("Integration/expectedresults.json"));
 
             var resultIsExpected = JToken.DeepEquals(resultJToken, expectedResultJToken);
@@ -107,6 +148,14 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             }
 
             resultIsExpected.Should().BeTrue();
+        }
+
+        private class ScheduleStub : TimerSchedule
+        {
+            public override DateTime GetNextOccurrence(DateTime now)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
