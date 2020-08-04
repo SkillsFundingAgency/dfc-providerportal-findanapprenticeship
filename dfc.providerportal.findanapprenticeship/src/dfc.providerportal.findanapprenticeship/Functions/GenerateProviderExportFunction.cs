@@ -61,7 +61,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 
                 using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(export)))
                 {
-                    await blobClient.UploadAsync(stream, ct);
+                    await blobClient.UploadAsync(stream, true, ct);
                 }
 
                 uploadStopwatch.Stop();
