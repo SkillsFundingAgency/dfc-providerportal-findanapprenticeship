@@ -103,8 +103,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _blobStorageClient.Setup(s => s.GetBlobClient(It.Is<string>(blobName => blobName == new ExportKey(now))))
                 .Returns(blobClient.Object);
 
-            blobClient.Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
-                .Callback<Stream, CancellationToken>((s, ct) =>
+            blobClient.Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Callback<Stream, bool, CancellationToken>((s, o, ct) =>
                 {
                     using (var ms = new MemoryStream())
                     {
