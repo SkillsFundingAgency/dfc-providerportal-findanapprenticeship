@@ -71,7 +71,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _providerServiceClient = new ProviderServiceClient(_providerService);
             
             _DASHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
-            _apprenticeshipService = new ApprenticeshipService(_telemetryClient, _cosmosDbHelper.Object, _cosmosSettings, _providerServiceClient, _DASHelper, _appCache);
+            _apprenticeshipService = new ApprenticeshipService(_cosmosDbHelper.Object, _cosmosSettings, _DASHelper, _providerServiceClient, _telemetryClient);
 
             _generateProviderExportFunction = new GenerateProviderExportFunction(_apprenticeshipService, _blobStorageClient.Object);
             _getApprenticeshipAsProviderFunction = new GetApprenticeshipsAsProvider(_blobStorageClient.Object, _nowUtc.Object);
