@@ -40,7 +40,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                 var apprenticeships = (List<Apprenticeship>)await _apprenticeshipService.GetLiveApprenticeships();
 
                 export = JsonConvert.SerializeObject(
-                    _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships).Where(r => r.Success).Select(r => r.Result),
+                    (await _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships)).Where(r => r.Success).Select(r => r.Result),
                     new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
                 log.LogInformation($"Completed generation of {{{nameof(exportKey)}}}.", exportKey);

@@ -68,7 +68,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _referenceDataServiceClient = new ReferenceDataServiceClient(_telemetryClient, new Mock<IOptions<ReferenceDataServiceSettings>>().Object, _appCache, _referenceDataService);
             _providerResponse = new Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>>();
             _providerService = new ProviderService(new HttpClient(new MockHttpMessageHandler(_providerResponse.Object)) { BaseAddress = new Uri("https://test.com") });
-            _providerServiceClient = new ProviderServiceClient(new Mock<IOptions<ProviderServiceSettings>>().Object, _appCache, _providerService);
+            _providerServiceClient = new ProviderServiceClient(_providerService);
             
             _DASHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
             _apprenticeshipService = new ApprenticeshipService(_telemetryClient, _cosmosDbHelper.Object, _cosmosSettings, _providerServiceClient, _DASHelper, _appCache);

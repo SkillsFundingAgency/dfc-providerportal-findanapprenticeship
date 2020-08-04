@@ -1,12 +1,11 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
 {
     public interface IProviderServiceClient
     {
-        IEnumerable<Provider> GetAllProviders();
-
-        IEnumerable<Provider> GetProviderByUkprn(int ukprn);
+        Task<IEnumerable<Provider>> GetAllProviders();
     }
 }

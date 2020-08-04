@@ -105,30 +105,37 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         /// <param name="apprenticeships">A list of apprenticeships to be processed and grouped into Providers</param>
         /// <returns></returns>
         [Obsolete("This shouldn't be used any more - if possible replace with a mapping class using something like AutoMapper ", false)]
-        public IEnumerable<DasProviderResult> ApprenticeshipsToDasProviders(List<Apprenticeship> apprenticeships)
+        public async Task<IEnumerable<DasProviderResult>> ApprenticeshipsToDasProviders(List<Apprenticeship> apprenticeships)
         {
             try
             {
                 var timer = Stopwatch.StartNew();
                 var evt = new EventTelemetry { Name = "ApprenticeshipsToDasProviders" };
 
-                var results = new ConcurrentBag<DasProviderResult>();
                 var apprenticeshipsByUKPRN = apprenticeships
                     .GroupBy(a => a.ProviderUKPRN)
                     .OrderBy(g => g.Key)
                     .ToArray();
+
+                var providersByUKPRN = (await _providerService.GetAllProviders())
+                    .GroupBy(p => p.UnitedKingdomProviderReferenceNumber)
+                    .ToDictionary(p => p.Key, p => p.AsEnumerable());
 
                 evt.Metrics.TryAdd("Apprenticeships", apprenticeships.Count);
                 evt.Metrics.TryAdd("Providers", apprenticeshipsByUKPRN.Length);
 
                 Console.WriteLine($"[{DateTime.UtcNow:G}] Found {apprenticeships.Count} apprenticeships for {apprenticeshipsByUKPRN.Length} Providers");
 
+                var results = new ConcurrentBag<DasProviderResult>();
+
                 Parallel.ForEach(apprenticeshipsByUKPRN.Select((g, i) =>
                     new { UKPRN = g.Key, Index = i, Apprenticeships = g.Where(a => a.RecordStatus == RecordStatus.Live).ToList() }), p =>
                 {
                     try
                     {
-                        var provider = ExportProvider(p.Apprenticeships, p.UKPRN, p.Index + 1000);
+                        providersByUKPRN.TryGetValue(p.UKPRN.ToString(), out var providers);
+
+                        var provider = ExportProvider(providers, p.Apprenticeships, p.UKPRN, p.Index + 1000);
 
                         results.Add(DasProviderResult.Succeeded(p.UKPRN, provider));
 
@@ -168,20 +175,26 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             }
         }
 
-        private DasProvider ExportProvider(List<Apprenticeship> apprenticeships, int ukprn, int exportKey)
+        private DasProvider ExportProvider(
+            IEnumerable<Provider> providers,
+            List<Apprenticeship> apprenticeships,
+            int ukprn,
+            int exportKey)
         {
             var evt = new EventTelemetry {Name = "ComposeProviderForExport"};
 
             evt.Properties.TryAdd("UKPRN", $"{ukprn}");
             evt.Metrics.TryAdd("ProviderApprenticeships", apprenticeships.Count);
+            evt.Metrics.TryAdd("MatchingProviders", providers?.Count() ?? 0);
 
-            var providerDetailsList = GetProviderDetails(ukprn).ToList();
-            evt.Metrics.TryAdd("MatchingProviders", providerDetailsList.Count);
+            if (!(providers?.Any() ?? false))
+            {
+                throw new ProviderNotFoundException(ukprn);
+            }
 
-            if (!providerDetailsList.Any()) throw new ProviderNotFoundException(ukprn);
             try
             {
-                var dasProvider = _DASHelper.CreateDasProviderFromProvider(exportKey, providerDetailsList.FirstOrDefault());
+                var dasProvider = _DASHelper.CreateDasProviderFromProvider(exportKey, providers.First());
 
                 if (dasProvider != null)
                 {
@@ -218,11 +231,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             }
 
             throw new ProviderNotFoundException(ukprn);
-        }
-
-        internal IEnumerable<Provider> GetProviderDetails(int UKPRN)
-        {
-            return _providerService.GetProviderByUkprn(UKPRN);
         }
 
         internal IEnumerable<Apprenticeship> OnlyUpdatedCourses(IEnumerable<Apprenticeship> apprenticeships)
