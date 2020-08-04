@@ -1381,7 +1381,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models.Regions
                             Checked = false,
                             Latitude = 50.79891,
                             Longitude = -1.09116,
-                            Postcode = "PO1 1E"
+                            Postcode = "PO1 1EJ"
                         },
                         new SubRegionItemModel
                         {
