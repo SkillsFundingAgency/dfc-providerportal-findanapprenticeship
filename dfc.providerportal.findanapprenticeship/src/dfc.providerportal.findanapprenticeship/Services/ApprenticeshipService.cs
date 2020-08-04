@@ -15,7 +15,6 @@ using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.ProviderPortal.Packages;
-using LazyCache;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Options;
@@ -24,19 +23,18 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 {
     public class ApprenticeshipService : IApprenticeshipService
     {
-        private readonly TelemetryClient _telemetryClient;
         private readonly ICosmosDbHelper _cosmosDbHelper;
-        private readonly IDASHelper _DASHelper;
         private readonly ICosmosDbCollectionSettings _cosmosSettings;
+        private readonly IDASHelper _DASHelper;
         private readonly IProviderServiceClient _providerService;
-        private readonly IAppCache _cache;
+        private readonly TelemetryClient _telemetryClient;
 
         public ApprenticeshipService(
-            TelemetryClient telemetryClient,
             ICosmosDbHelper cosmosDbHelper,
             IOptions<CosmosDbCollectionSettings> cosmosSettings,
-            IProviderServiceClient providerService, 
-            IDASHelper DASHelper, IAppCache cache)
+            IDASHelper DASHelper,
+            IProviderServiceClient providerService,
+            TelemetryClient telemetryClient)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));
             Throw.IfNull(cosmosDbHelper, nameof(cosmosDbHelper));
@@ -44,12 +42,11 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             Throw.IfNull(cosmosSettings, nameof(cosmosSettings));
             Throw.IfNull(providerService, nameof(providerService));
 
-            _telemetryClient = telemetryClient;
             _cosmosDbHelper = cosmosDbHelper;
-            _DASHelper = DASHelper;
-            _cache = cache;
-            _providerService = providerService;
             _cosmosSettings = cosmosSettings.Value;
+            _DASHelper = DASHelper;
+            _providerService = providerService;
+            _telemetryClient = telemetryClient;
         }
 
         public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipCollection()
@@ -65,20 +62,14 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 
         public async Task<IEnumerable<IApprenticeship>> GetLiveApprenticeships()
         {
-            Func<Task<List<Apprenticeship>>> liveApprenticeshipsGetter = async () =>
+            using (var client = _cosmosDbHelper.GetTcpClient())
             {
-                using (var client = _cosmosDbHelper.GetTcpClient())
-                {
-                    await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
-                    await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client,
-                        _cosmosSettings.ApprenticeshipCollectionId);
+                await _cosmosDbHelper.CreateDatabaseIfNotExistsAsync(client);
+                await _cosmosDbHelper.CreateDocumentCollectionIfNotExistsAsync(client,
+                    _cosmosSettings.ApprenticeshipCollectionId);
 
-                    return _cosmosDbHelper.GetLiveApprenticeships(client, _cosmosSettings.ApprenticeshipCollectionId);
-                }
-            };
-
-            return await _cache.GetOrAddAsync("LiveApprenticeships", liveApprenticeshipsGetter,
-                DateTimeOffset.Now.AddHours(8));
+                return _cosmosDbHelper.GetLiveApprenticeships(client, _cosmosSettings.ApprenticeshipCollectionId);
+            }
         }
 
         public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn)
