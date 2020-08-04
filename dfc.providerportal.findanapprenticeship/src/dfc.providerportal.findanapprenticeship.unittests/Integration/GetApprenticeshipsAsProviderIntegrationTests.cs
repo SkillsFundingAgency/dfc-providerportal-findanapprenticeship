@@ -17,7 +17,6 @@ using Dfc.Providerportal.FindAnApprenticeship.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.Providerportal.FindAnApprenticeship.Storage;
 using FluentAssertions;
-using LazyCache;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +35,6 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
     public class GetApprenticeshipsAsProviderIntegrationTests
     {
         private readonly TelemetryClient _telemetryClient;
-        private readonly IAppCache _appCache;
         private readonly Mock<Func<DateTimeOffset>> _nowUtc;
         private readonly Mock<IBlobStorageClient> _blobStorageClient;
         private readonly Mock<ICosmosDbHelper> _cosmosDbHelper;
@@ -57,7 +55,6 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
         public GetApprenticeshipsAsProviderIntegrationTests()
         {
             _telemetryClient = new TelemetryClient();
-            _appCache = new CachingService();
             _nowUtc = new Mock<Func<DateTimeOffset>>();
             _blobStorageClient = new Mock<IBlobStorageClient>();
             _cosmosDbHelper = new Mock<ICosmosDbHelper>();
@@ -65,13 +62,13 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
 
             _referenceDataResponse = new Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>>();
             _referenceDataService = new ReferenceDataService(new HttpClient(new MockHttpMessageHandler(_referenceDataResponse.Object)) { BaseAddress = new Uri("https://test.com") });
-            _referenceDataServiceClient = new ReferenceDataServiceClient(_telemetryClient, new Mock<IOptions<ReferenceDataServiceSettings>>().Object, _appCache, _referenceDataService);
+            _referenceDataServiceClient = new ReferenceDataServiceClient(_referenceDataService);
             _providerResponse = new Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>>();
             _providerService = new ProviderService(new HttpClient(new MockHttpMessageHandler(_providerResponse.Object)) { BaseAddress = new Uri("https://test.com") });
             _providerServiceClient = new ProviderServiceClient(_providerService);
             
-            _DASHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient);
-            _apprenticeshipService = new ApprenticeshipService(_cosmosDbHelper.Object, _cosmosSettings, _DASHelper, _providerServiceClient, _telemetryClient);
+            _DASHelper = new DASHelper(_telemetryClient);
+            _apprenticeshipService = new ApprenticeshipService(_cosmosDbHelper.Object, _cosmosSettings, _DASHelper, _providerServiceClient, _referenceDataServiceClient, _telemetryClient);
 
             _generateProviderExportFunction = new GenerateProviderExportFunction(_apprenticeshipService, _blobStorageClient.Object);
             _getApprenticeshipAsProviderFunction = new GetApprenticeshipsAsProvider(_blobStorageClient.Object, _nowUtc.Object);

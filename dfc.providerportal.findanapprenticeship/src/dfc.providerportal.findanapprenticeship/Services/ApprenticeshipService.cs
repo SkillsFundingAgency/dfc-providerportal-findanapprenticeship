@@ -26,27 +26,24 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         private readonly ICosmosDbHelper _cosmosDbHelper;
         private readonly ICosmosDbCollectionSettings _cosmosSettings;
         private readonly IDASHelper _DASHelper;
-        private readonly IProviderServiceClient _providerService;
+        private readonly IProviderServiceClient _providerServiceClient;
+        private readonly IReferenceDataServiceClient _referenceDataServiceClient;
         private readonly TelemetryClient _telemetryClient;
 
         public ApprenticeshipService(
             ICosmosDbHelper cosmosDbHelper,
             IOptions<CosmosDbCollectionSettings> cosmosSettings,
             IDASHelper DASHelper,
-            IProviderServiceClient providerService,
+            IProviderServiceClient providerServiceClient,
+            IReferenceDataServiceClient referenceDataServiceClient,
             TelemetryClient telemetryClient)
         {
-            Throw.IfNull(telemetryClient, nameof(telemetryClient));
-            Throw.IfNull(cosmosDbHelper, nameof(cosmosDbHelper));
-            Throw.IfNull(DASHelper, nameof(DASHelper));
-            Throw.IfNull(cosmosSettings, nameof(cosmosSettings));
-            Throw.IfNull(providerService, nameof(providerService));
-
-            _cosmosDbHelper = cosmosDbHelper;
-            _cosmosSettings = cosmosSettings.Value;
-            _DASHelper = DASHelper;
-            _providerService = providerService;
-            _telemetryClient = telemetryClient;
+            _cosmosDbHelper = cosmosDbHelper ?? throw new ArgumentNullException(nameof(cosmosDbHelper));
+            _cosmosSettings = cosmosSettings?.Value ?? throw new ArgumentNullException(nameof(cosmosSettings));
+            _DASHelper = DASHelper ?? throw new ArgumentNullException(nameof(DASHelper));
+            _providerServiceClient = providerServiceClient ?? throw new ArgumentNullException(nameof(providerServiceClient));
+            _referenceDataServiceClient = referenceDataServiceClient ?? throw new ArgumentNullException(nameof(referenceDataServiceClient));
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
         public async Task<IEnumerable<IApprenticeship>> GetApprenticeshipCollection()
@@ -108,9 +105,11 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                     .OrderBy(g => g.Key)
                     .ToArray();
 
-                var providersByUKPRN = (await _providerService.GetAllProviders())
-                    .GroupBy(p => p.UnitedKingdomProviderReferenceNumber)
-                    .ToDictionary(p => p.Key, p => p.AsEnumerable());
+                var providers = (await _providerServiceClient.GetAllProviders())
+                    .ToArray();
+
+                var feChoices = (await _referenceDataServiceClient.GetAllFeChoiceData())
+                    .ToArray();
 
                 evt.Metrics.TryAdd("Apprenticeships", apprenticeships.Count);
                 evt.Metrics.TryAdd("Providers", apprenticeshipsByUKPRN.Length);
@@ -124,9 +123,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                 {
                     try
                     {
-                        providersByUKPRN.TryGetValue(p.UKPRN.ToString(), out var providers);
-
-                        var provider = ExportProvider(providers, p.Apprenticeships, p.UKPRN, p.Index + 1000);
+                        var provider = ExportProvider(
+                            p.UKPRN,
+                            p.Index + 1000,
+                            providers.Where(pp => pp.UnitedKingdomProviderReferenceNumber == p.UKPRN.ToString()),
+                            p.Apprenticeships,
+                            feChoices.SingleOrDefault(f => f.UKPRN == p.UKPRN));
 
                         results.Add(DasProviderResult.Succeeded(p.UKPRN, provider));
 
@@ -167,10 +169,11 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
         }
 
         private DasProvider ExportProvider(
+            int ukprn,
+            int exportKey,
             IEnumerable<Provider> providers,
             List<Apprenticeship> apprenticeships,
-            int ukprn,
-            int exportKey)
+            FeChoice feChoice)
         {
             var evt = new EventTelemetry {Name = "ComposeProviderForExport"};
 
@@ -185,7 +188,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
 
             try
             {
-                var dasProvider = _DASHelper.CreateDasProviderFromProvider(exportKey, providers.First());
+                var dasProvider = _DASHelper.CreateDasProviderFromProvider(exportKey, providers.First(), feChoice);
 
                 if (dasProvider != null)
                 {

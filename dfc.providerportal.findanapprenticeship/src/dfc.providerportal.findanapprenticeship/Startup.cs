@@ -28,8 +28,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship
                 .AddEnvironmentVariables()
                 .Build();
 
-            services.AddLazyCache();
-
             #region Settings & Config
             
             var cosmosDbSettings = configuration.GetSection(nameof(CosmosDbSettings));

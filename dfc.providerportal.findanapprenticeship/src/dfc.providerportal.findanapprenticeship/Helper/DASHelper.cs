@@ -20,21 +20,18 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         // TODO: Add to config
         private const double NationalLat = 52.564269;
         private const double NationalLon = -1.466056;
-        private readonly IReferenceDataServiceClient _referenceDataServiceClient;
         private readonly TelemetryClient _telemetryClient;
 
-        public DASHelper(TelemetryClient telemetryClient, IReferenceDataServiceClient referenceDataServiceClient)
+        public DASHelper(TelemetryClient telemetryClient)
         {
             Throw.IfNull(telemetryClient, nameof(telemetryClient));
-            Throw.IfNull(referenceDataServiceClient, nameof(referenceDataServiceClient));
 
             _telemetryClient = telemetryClient;
-            _referenceDataServiceClient = referenceDataServiceClient;
         }
 
         [Obsolete("Please don't use this any more, instead replace with a mapper class using something like AutoMapper",
             false)]
-        public DasProvider CreateDasProviderFromProvider(int exportKey, Provider provider)
+        public DasProvider CreateDasProviderFromProvider(int exportKey, Provider provider, FeChoice feChoice)
         {
             if (!int.TryParse(provider.UnitedKingdomProviderReferenceNumber, out var ukprn))
                 throw new InvalidUkprnException(provider.UnitedKingdomProviderReferenceNumber);
@@ -44,9 +41,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             try
             {
                 var contactDetails = provider.ProviderContact.FirstOrDefault();
-
-                var feChoice = _referenceDataServiceClient
-                    .GetFeChoicesByUKPRN(provider.UnitedKingdomProviderReferenceNumber);
 
                 return new DasProvider
                 {

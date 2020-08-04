@@ -1,14 +1,11 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Dfc.Providerportal.FindAnApprenticeship.Models;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper
 {
     public interface IReferenceDataServiceClient
     {
-        IEnumerable<FeChoice> GetAllFeChoiceData();
-
-        FeChoice GetFeChoicesByUKPRN(string UKPRN);
+        Task<IEnumerable<FeChoice>> GetAllFeChoiceData();
     }
 }
