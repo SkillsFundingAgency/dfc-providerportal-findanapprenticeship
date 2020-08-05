@@ -1,6 +1,6 @@
 variables:
   ArmTemplateRoot: '$(Build.SourcesDirectory)\Resources\ArmTemplates'
-  SolutionBaseName: 'dfc.providerportal.findanapprenticeship\src\dfc.providerportal.findanapprenticeship'
+  SolutionBaseName: 'dfc.providerportal.findanapprenticeship'
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
 
