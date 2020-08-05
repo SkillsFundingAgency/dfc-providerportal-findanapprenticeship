@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Azure;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Storage;
@@ -61,11 +62,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
             catch (Exception ex)
             {
                 log.LogError(ex, $"{nameof(GetApprenticeshipsAsProvider)} failed with exception.");
-
-                return new ObjectResult(ex)
-                {
-                    StatusCode = StatusCodes.Status500InternalServerError
-                };
+                return new InternalServerErrorResult();
             }
         }
     }
