@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Storage.Blobs.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
@@ -57,55 +59,96 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
         {
             var exportKey = ExportKey.FromUtcNow();
 
-            log.LogInformation($"Started generation of {{{nameof(exportKey)}}}.", exportKey);
-
-            var results = default(IEnumerable<DasProviderResult>);
             try
             {
-                var generateStopwatch = Stopwatch.StartNew();
-
-                var apprenticeships = (List<Apprenticeship>)await _apprenticeshipService.GetLiveApprenticeships();
-
-                results = await _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships);
-
-                generateStopwatch.Stop();
-
-                log.LogInformation($"Completed generation of {{{nameof(exportKey)}}} in {generateStopwatch.Elapsed}.", exportKey);
-            }
-            catch (Exception ex)
-            {
-                log.LogError(ex, $"Failed to generate {{{nameof(exportKey)}}}.", exportKey);
-                return GenerateProviderExportResult.FailedToGenerate(exportKey);
-            }
-
-            try
-            {
-                log.LogInformation($"Started upload of {{{nameof(exportKey)}}}.", exportKey);
-
-                var uploadStopwatch = Stopwatch.StartNew();
-
                 var blobClient = _blobStorageClient.GetBlobClient(exportKey);
+                var leaseClient = _blobStorageClient.GetBlobLeaseClient(blobClient);
 
-                var export = JsonConvert.SerializeObject(
-                    results.Where(r => r.Success).Select(r => r.Result),
-                    new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(export)))
+                Response<BlobLease> lease;
+                try
                 {
-                    await blobClient.UploadAsync(stream, true, ct);
+                    lease = await leaseClient.AcquireAsync(TimeSpan.FromSeconds(60), cancellationToken: ct);
+                    log.LogInformation($"Acquired lease for {{{nameof(exportKey)}}}.", exportKey);
+                }
+                catch (RequestFailedException ex)
+                    when (ex.Status == 409 && ex.ErrorCode == BlobErrorCode.LeaseAlreadyPresent)
+                {
+                    log.LogWarning($"Failed to acquire lease for {{{nameof(exportKey)}}}.", exportKey);
+                    return GenerateProviderExportResult.FailedInProgress(exportKey);
                 }
 
-                uploadStopwatch.Stop();
+                var leaseRenewalTimer = new Timer(async _ =>
+                    {
+                        await leaseClient.RenewAsync();
+                        log.LogInformation($"Renewed lease for {{{nameof(exportKey)}}}.", exportKey);
+                    }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
 
-                log.LogInformation($"Completed upload of {{{nameof(exportKey)}}} in {uploadStopwatch.Elapsed}.", exportKey);
+                try
+                {
+                    log.LogInformation($"Started generation of {{{nameof(exportKey)}}}.", exportKey);
+
+                    var results = default(IEnumerable<DasProviderResult>);
+                    try
+                    {
+                        var generateStopwatch = Stopwatch.StartNew();
+
+                        var apprenticeships = (List<Apprenticeship>)await _apprenticeshipService.GetLiveApprenticeships();
+
+                        results = await _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships);
+
+                        generateStopwatch.Stop();
+
+                        log.LogInformation($"Completed generation of {{{nameof(exportKey)}}} in {generateStopwatch.Elapsed}.", exportKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.LogError(ex, $"Failed to generate {{{nameof(exportKey)}}}.", exportKey);
+                        return GenerateProviderExportResult.FailedGeneratation(exportKey);
+                    }
+
+                    try
+                    {
+                        log.LogInformation($"Started upload of {{{nameof(exportKey)}}}.", exportKey);
+
+                        var uploadStopwatch = Stopwatch.StartNew();
+
+                        var export = JsonConvert.SerializeObject(
+                            results.Where(r => r.Success).Select(r => r.Result),
+                            new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+
+                        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(export)))
+                        {
+                            await blobClient.UploadAsync(stream, conditions: new BlobRequestConditions
+                            {
+                                LeaseId = lease.Value.LeaseId
+                            }, cancellationToken: ct);
+                        }
+
+                        uploadStopwatch.Stop();
+
+                        log.LogInformation($"Completed upload of {{{nameof(exportKey)}}} in {uploadStopwatch.Elapsed}.", exportKey);
+                    }
+                    catch (RequestFailedException ex)
+                    {
+                        log.LogError(ex, $"Failed to upload {{{nameof(exportKey)}}}.", exportKey);
+                        return GenerateProviderExportResult.FailedUpload(exportKey);
+                    }
+
+                    return GenerateProviderExportResult.Succeeded(exportKey, results.Count(r => r.Success));
+                }
+                finally
+                {
+                    leaseRenewalTimer.Dispose();
+                    await leaseClient.ReleaseAsync();
+
+                    log.LogInformation($"Released lease for {{{nameof(exportKey)}}}.", exportKey);
+                }
             }
             catch (Exception ex)
             {
-                log.LogWarning(ex, $"Failed to upload {{{nameof(exportKey)}}}.", exportKey);
-                return GenerateProviderExportResult.FailedToUpload(exportKey);
+                log.LogError(ex, $"{nameof(GenerateProviderExport)} failed with unhandled exception.");
+                return GenerateProviderExportResult.FailedUnhandledException(exportKey);
             }
-
-            return GenerateProviderExportResult.Succeeded(exportKey, results.Count(r => r.Success));
         }
 
         private class GenerateProviderExportResult
@@ -125,14 +168,24 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                 return new GenerateProviderExportResult(true, $"Successfully generated {exportKey} containing {providerCount} providers.");
             }
 
-            public static GenerateProviderExportResult FailedToGenerate(string exportKey)
+            public static GenerateProviderExportResult FailedInProgress(string exportKey)
+            {
+                return new GenerateProviderExportResult(false, $"Generating {exportKey} is already in progress.");
+            }
+
+            public static GenerateProviderExportResult FailedGeneratation(string exportKey)
             {
                 return new GenerateProviderExportResult(false, $"Failed to generate {exportKey}.");
             }
 
-            public static GenerateProviderExportResult FailedToUpload(string exportKey)
+            public static GenerateProviderExportResult FailedUpload(string exportKey)
             {
                 return new GenerateProviderExportResult(false, $"Failed to upload {exportKey}.");
+            }
+
+            public static GenerateProviderExportResult FailedUnhandledException(string exportKey)
+            {
+                return new GenerateProviderExportResult(false, $"Failed to generate {exportKey} with unhandled exception.");
             }
         }
     }

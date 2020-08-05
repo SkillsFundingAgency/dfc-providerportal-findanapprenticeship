@@ -1,6 +1,7 @@
 ﻿using System;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Storage
 {
@@ -27,6 +28,16 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Storage
             }
 
             return _blobContainerClient.GetBlobClient(blobName);
+        }
+
+        public BlobLeaseClient GetBlobLeaseClient(BlobClient blobClient, string leaseId = null)
+        {
+            if (blobClient == null)
+            {
+                throw new ArgumentNullException(nameof(blobClient));
+            }
+
+            return blobClient.GetBlobLeaseClient(leaseId);
         }
     }
 }

@@ -6,8 +6,10 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using Dfc.Providerportal.FindAnApprenticeship.Functions;
 using Dfc.Providerportal.FindAnApprenticeship.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
@@ -98,13 +100,28 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
                 .Returns(() => JsonConvert.DeserializeObject<List<Apprenticeship>>(File.ReadAllText("Integration/apprenticeships.json")));
 
             var blobClient = new Mock<BlobClient>();
+            var blobLeaseClient = new Mock<BlobLeaseClient>();
             var blobBytes = default(byte[]);
+
+            blobLeaseClient.Setup(s => s.AcquireAsync(It.IsAny<TimeSpan>(), It.IsAny<RequestConditions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() =>
+                {
+                    var response = new Mock<Response<BlobLease>>();
+
+                    response.SetupGet(s => s.Value)
+                        .Returns(BlobsModelFactory.BlobLease(new ETag(Guid.NewGuid().ToString()), DateTimeOffset.UtcNow, Guid.NewGuid().ToString()));
+
+                    return response.Object;
+                });
 
             _blobStorageClient.Setup(s => s.GetBlobClient(It.Is<string>(blobName => blobName == new ExportKey(now))))
                 .Returns(blobClient.Object);
 
-            blobClient.Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Callback<Stream, bool, CancellationToken>((s, o, ct) =>
+            _blobStorageClient.Setup(s => s.GetBlobLeaseClient(blobClient.Object, It.IsAny<string>()))
+                .Returns(blobLeaseClient.Object);
+
+            blobClient.Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<BlobHttpHeaders>(), It.IsAny<IDictionary<string, string>>(), It.IsAny<BlobRequestConditions>(), It.IsAny<IProgress<long>>(), It.IsAny<AccessTier?>(), It.IsAny<StorageTransferOptions>(), It.IsAny<CancellationToken>()))
+                .Callback<Stream, BlobHttpHeaders, IDictionary<string, string>, BlobRequestConditions, IProgress<long>, AccessTier?, StorageTransferOptions, CancellationToken>((s, h, m, c, p, a, t, ct) =>
                 {
                     using (var ms = new MemoryStream())
                     {
