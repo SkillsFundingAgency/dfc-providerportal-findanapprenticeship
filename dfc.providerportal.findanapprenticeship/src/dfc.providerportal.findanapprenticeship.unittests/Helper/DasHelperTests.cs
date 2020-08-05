@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dfc.Providerportal.FindAnApprenticeship.Helper;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
 using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Microsoft.ApplicationInsights;
-using Moq;
 using Xunit;
 
 namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
@@ -18,13 +16,11 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
         {
             private readonly DASHelper _dasHelper;
             private readonly TelemetryClient _telemetryClient;
-            private readonly Mock<IReferenceDataServiceClient> _referenceDataServiceClient;
 
             public DasHelperFixture()
             {
                 var _telemetryClient = new TelemetryClient();
-                _referenceDataServiceClient = new Mock<IReferenceDataServiceClient>();
-                _dasHelper = new DASHelper(_telemetryClient, _referenceDataServiceClient.Object);
+                _dasHelper = new DASHelper(_telemetryClient);
             }
 
             public DASHelper Sut => _dasHelper;
@@ -74,13 +70,13 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Helper
             {
                 // Arrange
                 var contactDetails = provider.ProviderContact.FirstOrDefault();
-                var expected = 
-                    !string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1) 
-                        ? contactDetails.ContactTelephone1 
+                var expected =
+                    !string.IsNullOrWhiteSpace(contactDetails.ContactTelephone1)
+                        ? contactDetails.ContactTelephone1
                         : contactDetails.ContactTelephone2;
 
                 // Act
-                var result = _sut.CreateDasProviderFromProvider(123, provider);
+                var result = _sut.CreateDasProviderFromProvider(123, provider, null);
                 var actual = result.Phone;
 
                 // Assert

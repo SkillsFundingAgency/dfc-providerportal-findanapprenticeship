@@ -6,7 +6,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services
 {
     public interface IReferenceDataService
     {
-        IEnumerable<FeChoice> GetAllFeChoices();
         Task<IEnumerable<FeChoice>> GetAllFeChoicesAsync();
     }
 }
