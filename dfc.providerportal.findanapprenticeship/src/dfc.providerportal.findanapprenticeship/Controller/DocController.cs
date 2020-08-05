@@ -11,6 +11,15 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Controller
     [ApiController]
     public class DocController : ControllerBase
     {
+        [Route("bulk/generate")]
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GenerateProviderExport()
+        {
+            return Ok();
+        }
+
         [Route("bulk/providers")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<DasProvider>), StatusCodes.Status200OK)]
