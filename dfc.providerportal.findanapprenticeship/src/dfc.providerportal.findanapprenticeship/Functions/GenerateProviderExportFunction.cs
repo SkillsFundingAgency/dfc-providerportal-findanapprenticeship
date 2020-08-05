@@ -37,25 +37,29 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
             string export = null;
             try
             {
+                var generateStopwatch = Stopwatch.StartNew();
+
                 var apprenticeships = (List<Apprenticeship>)await _apprenticeshipService.GetLiveApprenticeships();
 
                 export = JsonConvert.SerializeObject(
                     (await _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships)).Where(r => r.Success).Select(r => r.Result),
                     new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
-                log.LogInformation($"Completed generation of {{{nameof(exportKey)}}}.", exportKey);
+                generateStopwatch.Stop();
+
+                log.LogInformation($"Completed generation of {{{nameof(exportKey)}}} in {generateStopwatch.Elapsed}.", exportKey);
             }
             catch (Exception ex)
             {
                 log.LogError(ex, $"Failed to generate {{{nameof(exportKey)}}}.", exportKey);
+                return;
             }
 
             try
             {
                 log.LogInformation($"Started upload of {{{nameof(exportKey)}}}.", exportKey);
 
-                var uploadStopwatch = new Stopwatch();
-                uploadStopwatch.Start();
+                var uploadStopwatch = Stopwatch.StartNew();
 
                 var blobClient = _blobStorageClient.GetBlobClient(exportKey);
 
