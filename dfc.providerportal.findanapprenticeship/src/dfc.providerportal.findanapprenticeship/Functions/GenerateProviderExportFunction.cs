@@ -62,6 +62,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
             try
             {
                 var blobClient = _blobStorageClient.GetBlobClient(exportKey);
+
+                if (!await blobClient.ExistsAsync(ct))
+                {
+                    await blobClient.UploadAsync(new MemoryStream(), true, ct);
+                }
+
                 var leaseClient = _blobStorageClient.GetBlobLeaseClient(blobClient);
 
                 Response<BlobLease> lease;
