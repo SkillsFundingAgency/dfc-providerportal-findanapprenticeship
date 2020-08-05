@@ -1,6 +1,6 @@
+# dotnet core build
+
 variables:
-  ArmTemplateRoot: '$(Build.SourcesDirectory)\Resources\ArmTemplates'
-  SolutionBaseName: 'dfc.providerportal.findanapprenticeship'
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
 
@@ -11,7 +11,7 @@ resources:
     type: github
     name: SkillsFundingAgency/dfc-devops
     endpoint: 'GitHub (ESFA)'
-    ref: refs/tags/v1.11.2
+    ref: refs/tags/v1.5.0
 
 trigger:
   batch: true
@@ -26,73 +26,49 @@ pr:
     - master
     - dev
 
-stages:
-  - stage: Build
-    displayName: Build, Test and Analyze
-    jobs:
-      - job: TestArmTemplates
-        displayName: "Test & package ARM template(s)"
-        steps:
-        - template: AzureDevOpsTemplates\Build\StepTemplates\dfc-arm-build.yml@dfc-devops
-          parameters:
-            ArmTemplateRoot: '${{ variables.ArmTemplateRoot }}'
-            SolutionBaseName: '${{ variables.SolutionBaseName }}'
-  
-      - job: BuildDotNetCore
-        displayName: Build-DotNetCore
-        steps:
-        - template: AzureDevOpsTemplates\Build\StepTemplates\dfc-dotnetcore-build-sonar.yml@dfc-devops
-          parameters:
-            SolutionBaseName: $(SolutionBaseName)
-            BuildPlatform: $(BuildPlatform)
-            BuildConfiguration: $(BuildConfiguration)
-            DotNetCoreVersion: '3.1.100'
-            PublishWebApp: true
-            TestSuffix: UnitTests
+steps:
 
-# steps:
+# ARM template
+- template: AzureDevOpsTemplates/Build/dfc-arm-build.yml@dfc-devops
+  parameters:
+    ArmTemplateRoot: '$(System.DefaultWorkingDirectory)\Resources\ArmTemplates'
 
-# # ARM template
-# - template: AzureDevOpsTemplates/Build/dfc-arm-build.yml@dfc-devops
-#   parameters:
-#     ArmTemplateRoot: '$(System.DefaultWorkingDirectory)\Resources\ArmTemplates'
+# restore
+- task: DotNetCoreCLI@2
+  displayName: dotnet restore
+  inputs:
+    command: restore
+    projects: '**/*.csproj'
 
-# # restore
-# - task: DotNetCoreCLI@2
-#   displayName: dotnet restore
-#   inputs:
-#     command: restore
-#     projects: '**/*.csproj'
+# build
+- task: DotNetCoreCLI@2
+  displayName: dotnet build
+  inputs:
+    command: build
+    projects: '**/*.csproj'
+    configuration: ${{ variables.buildConfiguration }}
 
-# # build
-# - task: DotNetCoreCLI@2
-#   displayName: dotnet build
-#   inputs:
-#     command: build
-#     projects: '**/*.csproj'
-#     configuration: ${{ variables.buildConfiguration }}
+# test
+- task: DotNetCoreCLI@2
+  displayName: dotnet test
+  inputs:
+    command: test
+    projects: '**/*test*.csproj'
+    configuration: ${{ variables.buildConfiguration }}
 
-# # test
-# - task: DotNetCoreCLI@2
-#   displayName: dotnet test
-#   inputs:
-#     command: test
-#     projects: '**/*test*.csproj'
-#     configuration: ${{ variables.buildConfiguration }}
+# publish
+- task: DotNetCoreCLI@2
+  displayName: dotnet publish
+  inputs:
+    command: publish
+    projects: 'dfc.providerportal.findanapprenticeship\src\dfc.providerportal.findanapprenticeship'
+    configuration: ${{ variables.buildConfiguration }}
+    arguments: '--output $(Build.ArtifactStagingDirectory)'
+    publishWebProjects: false
+    zipAfterPublish: true
 
-# # publish
-# - task: DotNetCoreCLI@2
-#   displayName: dotnet publish
-#   inputs:
-#     command: publish
-#     projects: 'dfc.providerportal.findanapprenticeship\src\dfc.providerportal.findanapprenticeship'
-#     configuration: ${{ variables.buildConfiguration }}
-#     arguments: '--output $(Build.ArtifactStagingDirectory)'
-#     publishWebProjects: false
-#     zipAfterPublish: true
-
-# - task: PublishBuildArtifacts@1
-#   displayName: Publish Artifact
-#   inputs:
-#      pathtoPublish: $(Build.ArtifactStagingDirectory)
-#      artifactName: dfc.providerportal.findanapprenticeship
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifact
+  inputs:
+     pathtoPublish: $(Build.ArtifactStagingDirectory)
+     artifactName: dfc.providerportal.findanapprenticeship
