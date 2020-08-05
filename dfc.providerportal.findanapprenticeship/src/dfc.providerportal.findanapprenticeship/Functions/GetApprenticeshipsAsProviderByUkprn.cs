@@ -48,7 +48,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
                     return new NotFoundObjectResult(ErrorResult($"No apprentiships found for UKPRN {ukprn}."));
                 }
                     
-                var result = _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships).Single();
+                var result = (await _apprenticeshipService.ApprenticeshipsToDasProviders(apprenticeships)).Single();
 
                 return new OkObjectResult(DasProviderResultViewModel.FromDasProviderResult(result));
             }

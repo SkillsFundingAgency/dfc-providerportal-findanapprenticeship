@@ -1,64 +1,27 @@
 ﻿using System;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Settings;
-using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
-using Dfc.ProviderPortal.Packages;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
-using Dfc.Providerportal.FindAnApprenticeship.Models;
-using Dfc.Providerportal.FindAnApprenticeship.Settings;
-using LazyCache;
-using Microsoft.Extensions.Options;
+using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Helper
 {
     public class ProviderServiceClient : IProviderServiceClient
     {
         private readonly IProviderService _service;
-        private readonly IAppCache _cache;
-        private readonly IProviderServiceSettings _settings;
 
-        public ProviderServiceClient(IOptions<ProviderServiceSettings> settings, 
-            IAppCache cache,
-            IProviderService service)
+        public ProviderServiceClient(IProviderService service)
         {
-            Throw.IfNull(settings, nameof(settings));
-            Throw.IfNull(cache, nameof(cache));
-            Throw.IfNull(service, nameof(service));
-
-            _settings = settings.Value;
-            _cache = cache;
-            _service = service;
+            _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
-        /// <summary>
-        /// Mostly returns a single provider, but in some cases, we have multiple orgs with the same UKPRN. Quirky!
-        /// </summary>
-        /// <param name="ukprn">The UKPRN to lookup</param>
-        /// <returns>A list of matching providers.</returns>
-        public IEnumerable<Provider> GetProviderByUkprn(int ukprn)
+        public async Task<IEnumerable<Provider>> GetAllProviders()
         {
             try
             {
-                return this.GetAllProviders().Where(x => x.UnitedKingdomProviderReferenceNumber == $"{ukprn}");
-            }
-            catch (Exception e)
-            {
-                throw new ProviderServiceException(ukprn, e);
-            }
-
-        }
-
-        public IEnumerable<Provider> GetAllProviders()
-        {
-            Func<IEnumerable<Provider>> activeProvidersGetter = () => _service.GetActiveProviders();
-
-            try
-            {
-                return _cache.GetOrAdd("ActiveProviders", activeProvidersGetter, DateTimeOffset.Now.AddHours(8));
+                return await _service.GetActiveProvidersAsync();
             }
             catch (HttpRequestException e)
             {
