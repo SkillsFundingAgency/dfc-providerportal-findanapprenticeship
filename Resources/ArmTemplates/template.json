@@ -61,6 +61,9 @@
         "metadata": {
           "description": "Key to access reference data api via APIM"
         }
+      },
+      "GenerateProviderExportSchedule": {
+        "type": "string"
       }
     },
     "variables": {
@@ -168,6 +171,10 @@
                 {
                   "name": "ReferenceDataServiceSettings__ApiKey",
                   "value": "[parameters('referenceDataApiKey')]"
+                },
+                {
+                  "name": "GenerateProviderExportSchedule",
+                  "value": "[parameters('GenerateProviderExportSchedule')]"
                 }
               ]
             },
