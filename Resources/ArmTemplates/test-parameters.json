@@ -31,6 +31,9 @@
       },
       "referenceDataApiKey": {
         "value": "not-a-real-apim-key"
+      },
+      "GenerateProviderExportSchedule": {
+        "value": "a-value"
       }
     }
   }

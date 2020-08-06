@@ -31,6 +31,9 @@
       },
       "referenceDataApiKey": {
         "value": "__ApimPublishCourseDirectoryKey__"
+      },
+      "GenerateProviderExportSchedule": {
+        "value": "__GenerateProviderExportSchedule__"
       }
     }
   }
