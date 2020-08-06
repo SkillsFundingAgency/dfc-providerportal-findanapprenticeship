@@ -103,16 +103,11 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             var blobLeaseClient = new Mock<BlobLeaseClient>();
             var blobBytes = default(byte[]);
 
+            blobClient.Setup(s => s.ExistsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new MockResponse<bool>(true));
+
             blobLeaseClient.Setup(s => s.AcquireAsync(It.IsAny<TimeSpan>(), It.IsAny<RequestConditions>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() =>
-                {
-                    var response = new Mock<Response<BlobLease>>();
-
-                    response.SetupGet(s => s.Value)
-                        .Returns(BlobsModelFactory.BlobLease(new ETag(Guid.NewGuid().ToString()), DateTimeOffset.UtcNow, Guid.NewGuid().ToString()));
-
-                    return response.Object;
-                });
+                .ReturnsAsync(() => new MockResponse<BlobLease>(BlobsModelFactory.BlobLease(new ETag(Guid.NewGuid().ToString()), DateTimeOffset.UtcNow, Guid.NewGuid().ToString())));
 
             _blobStorageClient.Setup(s => s.GetBlobClient(It.Is<string>(blobName => blobName == new ExportKey(now))))
                 .Returns(blobClient.Object);
@@ -131,15 +126,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
                 });
 
             blobClient.Setup(s => s.DownloadAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() =>
-                {
-                    var response = new Mock<Response<BlobDownloadInfo>>();
-
-                    response.SetupGet(s => s.Value)
-                        .Returns(BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream(blobBytes)));
-
-                    return response.Object;
-                });
+                .ReturnsAsync(() => new MockResponse<BlobDownloadInfo>(BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream(blobBytes))));
 
             await _generateProviderExportFunction.Run(new TimerInfo(new ScheduleStub(), new ScheduleStatus()), NullLogger.Instance, CancellationToken.None);
 
@@ -162,6 +149,21 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             }
 
             resultIsExpected.Should().BeTrue();
+        }
+
+        private class MockResponse<T> : Response<T>
+        {
+            public override T Value { get; }
+
+            public MockResponse(T value)
+            {
+                Value = value;
+            }
+
+            public override Response GetRawResponse()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class ScheduleStub : TimerSchedule
