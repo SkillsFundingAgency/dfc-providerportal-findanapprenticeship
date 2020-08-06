@@ -34,7 +34,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Functions
         }
 
         [FunctionName("GenerateProviderExport")]
-        public Task Run([TimerTrigger("%GenerateProviderExportSchedule%")]TimerInfo timer, ILogger log, CancellationToken ct)
+        public Task Run([TimerTrigger("%GenerateProviderExportSchedule%", UseMonitor = false)]TimerInfo timer, ILogger log, CancellationToken ct)
         {
             return GenerateProviderExport(log, ct);
         }
