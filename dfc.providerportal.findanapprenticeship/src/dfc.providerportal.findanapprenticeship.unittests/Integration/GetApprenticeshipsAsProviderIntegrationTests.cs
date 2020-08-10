@@ -6,8 +6,10 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using Dfc.Providerportal.FindAnApprenticeship.Functions;
 using Dfc.Providerportal.FindAnApprenticeship.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
@@ -98,13 +100,23 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
                 .Returns(() => JsonConvert.DeserializeObject<List<Apprenticeship>>(File.ReadAllText("Integration/apprenticeships.json")));
 
             var blobClient = new Mock<BlobClient>();
+            var blobLeaseClient = new Mock<BlobLeaseClient>();
             var blobBytes = default(byte[]);
+
+            blobClient.Setup(s => s.ExistsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new MockResponse<bool>(true));
+
+            blobLeaseClient.Setup(s => s.AcquireAsync(It.IsAny<TimeSpan>(), It.IsAny<RequestConditions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new MockResponse<BlobLease>(BlobsModelFactory.BlobLease(new ETag(Guid.NewGuid().ToString()), DateTimeOffset.UtcNow, Guid.NewGuid().ToString())));
 
             _blobStorageClient.Setup(s => s.GetBlobClient(It.Is<string>(blobName => blobName == new ExportKey(now))))
                 .Returns(blobClient.Object);
 
-            blobClient.Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Callback<Stream, bool, CancellationToken>((s, o, ct) =>
+            _blobStorageClient.Setup(s => s.GetBlobLeaseClient(blobClient.Object, It.IsAny<string>()))
+                .Returns(blobLeaseClient.Object);
+
+            blobClient.Setup(s => s.UploadAsync(It.IsAny<Stream>(), It.IsAny<BlobHttpHeaders>(), It.IsAny<IDictionary<string, string>>(), It.IsAny<BlobRequestConditions>(), It.IsAny<IProgress<long>>(), It.IsAny<AccessTier?>(), It.IsAny<StorageTransferOptions>(), It.IsAny<CancellationToken>()))
+                .Callback<Stream, BlobHttpHeaders, IDictionary<string, string>, BlobRequestConditions, IProgress<long>, AccessTier?, StorageTransferOptions, CancellationToken>((s, h, m, c, p, a, t, ct) =>
                 {
                     using (var ms = new MemoryStream())
                     {
@@ -114,15 +126,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
                 });
 
             blobClient.Setup(s => s.DownloadAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() =>
-                {
-                    var response = new Mock<Response<BlobDownloadInfo>>();
-
-                    response.SetupGet(s => s.Value)
-                        .Returns(BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream(blobBytes)));
-
-                    return response.Object;
-                });
+                .ReturnsAsync(() => new MockResponse<BlobDownloadInfo>(BlobsModelFactory.BlobDownloadInfo(content: new MemoryStream(blobBytes))));
 
             await _generateProviderExportFunction.Run(new TimerInfo(new ScheduleStub(), new ScheduleStatus()), NullLogger.Instance, CancellationToken.None);
 
@@ -145,6 +149,21 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             }
 
             resultIsExpected.Should().BeTrue();
+        }
+
+        private class MockResponse<T> : Response<T>
+        {
+            public override T Value { get; }
+
+            public MockResponse(T value)
+            {
+                Value = value;
+            }
+
+            public override Response GetRawResponse()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class ScheduleStub : TimerSchedule
