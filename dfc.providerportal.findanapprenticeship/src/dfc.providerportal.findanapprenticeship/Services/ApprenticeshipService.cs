@@ -178,7 +178,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
             var evt = new EventTelemetry {Name = "ComposeProviderForExport"};
 
             evt.Properties.TryAdd("UKPRN", $"{ukprn}");
-            evt.Metrics.TryAdd("ProviderApprenticeships", apprenticeships.Count);
+            evt.Metrics.TryAdd("ProviderApprenticeships", apprenticeships.Count());
             evt.Metrics.TryAdd("MatchingProviders", providers?.Count() ?? 0);
 
             if (!(providers?.Any() ?? false))
@@ -193,15 +193,12 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Services
                 if (dasProvider != null)
                 {
                     var apprenticeshipLocations = apprenticeships.Where(x => x.ApprenticeshipLocations != null)
-                        .SelectMany(x => x.ApprenticeshipLocations).Distinct(new ApprenticeshipLocationSameAddress()).ToList();
+                        .SelectMany(x => x.ApprenticeshipLocations).Distinct(new ApprenticeshipLocationSameAddress());
 
                     var index = 1000;
                     var locationIndex = new Dictionary<string, ApprenticeshipLocation>(apprenticeshipLocations
                         .Where(x => x.RecordStatus == RecordStatus.Live)
                         .Select(x => new KeyValuePair<string, ApprenticeshipLocation>($"{exportKey:D4}{index++:D4}", x)));
-
-                    if (locationIndex.Any(l => l.Value.National.HasValue && l.Value.National == true))
-                        dasProvider.NationalProvider = true;
 
                     var exportStandards = apprenticeships.Where(x => x.StandardCode.HasValue);
                     var exportFrameworks = apprenticeships.Where(x => x.FrameworkCode.HasValue);
