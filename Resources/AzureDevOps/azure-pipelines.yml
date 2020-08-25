@@ -3,6 +3,7 @@
 variables:
   BuildPlatform: 'any cpu'
   BuildConfiguration: 'release'
+  GitVersionConfigFilePath: Resources/AzureDevOps/GitVersion.yml
 
 resources:
   repositories:
@@ -25,6 +26,13 @@ pr:
     - main
 
 steps:
+
+- task: UseGitVersion@5
+  displayName: GitVersion
+  inputs:
+    useConfigFile: true
+    configFilePath: ${{ variables.GitVersionConfigFilePath }}
+    versionSpec: '5.3.x'
 
 # ARM template
 - template: AzureDevOpsTemplates/Build/dfc-arm-build.yml@dfc-devops
@@ -59,7 +67,7 @@ steps:
   displayName: dotnet publish
   inputs:
     command: publish
-    projects: 'dfc.providerportal.findanapprenticeship\src\dfc.providerportal.findanapprenticeship'
+    projects: 'src\dfc.providerportal.findanapprenticeship'
     configuration: ${{ variables.buildConfiguration }}
     arguments: '--output $(Build.ArtifactStagingDirectory)'
     publishWebProjects: false
