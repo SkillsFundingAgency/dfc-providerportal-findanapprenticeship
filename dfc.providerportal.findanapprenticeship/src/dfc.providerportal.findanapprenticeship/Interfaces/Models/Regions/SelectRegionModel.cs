@@ -1381,7 +1381,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models.Regions
                             Checked = false,
                             Latitude = 50.79891,
                             Longitude = -1.09116,
-                            Postcode = "PO1 1E"
+                            Postcode = "PO1 1EJ"
                         },
                         new SubRegionItemModel
                         {
@@ -1549,7 +1549,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models.Regions
                         new SubRegionItemModel
                         {
                             Id = "E06000028",
-                            ApiLocationId = 200000148,
+                            ApiLocationId = 200000162,
                             SubRegionName = "Bournemouth",
                             Checked = false,
                             Latitude = 50.72168,

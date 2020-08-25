@@ -1,52 +1,84 @@
-﻿using System.Linq;
-using LazyCache;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Dfc.Providerportal.FindAnApprenticeship;
+using Dfc.Providerportal.FindAnApprenticeship.Helper;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
+using Dfc.Providerportal.FindAnApprenticeship.Services;
+using Dfc.Providerportal.FindAnApprenticeship.Settings;
+using Dfc.Providerportal.FindAnApprenticeship.Storage;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
-using Newtonsoft.Json.Serialization;
 
+[assembly: FunctionsStartup(typeof(Startup))]
 namespace Dfc.Providerportal.FindAnApprenticeship
 {
-    public class Startup
+    public class Startup : FunctionsStartup
     {
-        public Startup(IConfiguration configuration)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            Configuration = configuration;
+            ConfigureServices(builder.Services);
         }
 
-        public IConfiguration Configuration { get; }
-
-        public void ConfigureServices(IServiceCollection services)
+        private static void ConfigureServices(IServiceCollection services)
         {
-            services
-                .AddApplicationInsightsTelemetry()
-                .AddMvcCore()
-                .SetCompatibilityVersion(CompatibilityVersion.Latest)
-                .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
-                .AddApiExplorer();
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Environment.CurrentDirectory)
+                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
 
-            services.AddLazyCache();
+            #region Settings & Config
+            
+            var cosmosDbSettings = configuration.GetSection(nameof(CosmosDbSettings));
+            var cosmosDbCollectionSettings = configuration.GetSection(nameof(CosmosDbCollectionSettings));
+            var providerServiceSettings = configuration.GetSection(nameof(ProviderServiceSettings));
+            var referenceDataServiceSettings = configuration.GetSection(nameof(ReferenceDataServiceSettings));
 
-            services.AddSwaggerGen(c =>
+            services.AddSingleton<IConfiguration>(configuration);
+            services.Configure<CosmosDbSettings>(cosmosDbSettings);
+            services.Configure<CosmosDbCollectionSettings>(cosmosDbCollectionSettings);
+            services.Configure<ProviderServiceSettings>(providerServiceSettings);
+            services.Configure<ReferenceDataServiceSettings>(referenceDataServiceSettings);
+
+            #endregion
+
+            #region Http Clients
+
+            services.AddHttpClient<IReferenceDataService, ReferenceDataService>(client =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Course Directory Find An Apprenticeship API", Version = "v1" });
+                var options = referenceDataServiceSettings.Get<ReferenceDataServiceSettings>();
+
+                client.BaseAddress = new Uri(options.ApiUrl);
+                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", options.ApiKey);
             });
-        }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app)
-        {
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
+            services.AddHttpClient<IProviderService, ProviderService>(client =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Course Directory Course API");
+                var options = providerServiceSettings.Get<ProviderServiceSettings>();
+
+                client.BaseAddress = new Uri(options.ApiUrl);
+                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", options.ApiKey);
             });
 
-            app.UseMvc();
+            #endregion
+
+            #region Services
+
+            services.AddSingleton<IReferenceDataServiceClient, ReferenceDataServiceClient>();
+            services.AddSingleton<IProviderServiceClient, ProviderServiceClient>();
+            services.AddSingleton<Func<DateTimeOffset>>(() => DateTimeOffset.UtcNow);
+            services.AddSingleton<IBlobStorageClient>(s =>
+                new AzureBlobStorageClient(
+                    new AzureBlobStorageClientOptions(
+                        s.GetRequiredService<IConfiguration>().GetValue<string>("AzureWebJobsStorage"),
+                        "fatp-providersexport")));
+
+            services.AddScoped<ICosmosDbHelper, CosmosDbHelper>();
+            services.AddScoped<IDASHelper, DASHelper>();
+            services.AddScoped<IApprenticeshipService, ApprenticeshipService>();
+
+            #endregion
         }
     }
 }

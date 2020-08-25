@@ -1,65 +1,69 @@
 using System;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
+using Azure;
+using Dfc.Providerportal.FindAnApprenticeship.Models;
+using Dfc.Providerportal.FindAnApprenticeship.Storage;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Dfc.ProviderPortal.Packages.AzureFunctions.DependencyInjection;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
-using Dfc.Providerportal.FindAnApprenticeship.Models;
-using System.Collections.Generic;
-using System.Linq;
-using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
-using LazyCache;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Functions
 {
-    public static class GetApprenticeshipsAsProvider
+    public class GetApprenticeshipsAsProvider
     {
-        [FunctionName("GetApprenticeshipsAsProvider")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "bulk/providers")] HttpRequest req,
-                                                    ILogger log,
-                                                    [Inject] IAppCache cache,
-                                                    [Inject] IApprenticeshipService apprenticeshipService)
-        {
-            List<Apprenticeship> persisted = null;
+        private readonly IBlobStorageClient _blobStorageClient;
+        private readonly Func<DateTimeOffset> _nowUtc;
 
+        public GetApprenticeshipsAsProvider(IBlobStorageClient blobStorageClient, Func<DateTimeOffset> nowUtc)
+        {
+            _blobStorageClient = blobStorageClient ?? throw new ArgumentNullException(nameof(blobStorageClient));
+            _nowUtc = nowUtc ?? throw new ArgumentNullException(nameof(nowUtc));
+        }
+
+        [FunctionName("GetApprenticeshipsAsProvider")]
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "bulk/providers")]HttpRequest req, ILogger log, CancellationToken ct)
+        {
             try
             {
-                Console.WriteLine($"[{DateTime.UtcNow:G}] Retrieving Apprenticeships...");
-                
-                persisted = (List<Apprenticeship>)await apprenticeshipService.GetLiveApprenticeships();
-                if (persisted == null)
-                    return new EmptyResult();
+                var requestDateTime = _nowUtc();
 
-                Func<Task<List<DasProvider>>> dasProviderGetter = async () =>
+                log.LogInformation($"{nameof(GetApprenticeshipsAsProvider)} requested at {{{nameof(requestDateTime)}}}.", requestDateTime);
+
+                for (int i = 0; i <= 1; i++)
                 {
-                    return apprenticeshipService.ApprenticeshipsToDasProviders(persisted) as List<DasProvider>;
-                };
-                
-                var providers = cache.GetOrAdd("DasProviders", dasProviderGetter, DateTimeOffset.Now.AddHours(8));
-                
-                return new OkObjectResult(providers.Result);
-            } 
-            catch (Exception e)
-            {
-                return new InternalServerErrorObjectResult(e);
-            }
-        }
-    }
-    internal class InternalServerErrorObjectResult : ObjectResult
-    {
-        public InternalServerErrorObjectResult(object value) : base(value)
-        {
-            StatusCode = StatusCodes.Status500InternalServerError;
-        }
+                    var exportKey = new ExportKey(requestDateTime.AddDays(-i));
 
-        public InternalServerErrorObjectResult() : this(null)
-        {
-            StatusCode = StatusCodes.Status500InternalServerError;
+                    var blobClient = _blobStorageClient.GetBlobClient(exportKey);
+
+                    try
+                    {
+                        var result = await blobClient.DownloadAsync(ct);
+
+                        log.LogInformation($"{nameof(GetApprenticeshipsAsProvider)} returned {{{nameof(exportKey)}}}.", exportKey);
+
+                        return new FileStreamResult(result.Value.Content, "application/json");
+                    }
+                    catch (RequestFailedException ex)
+                        when (ex.Status == StatusCodes.Status404NotFound)
+                    {
+                        log.LogInformation($"{nameof(GetApprenticeshipsAsProvider)} failed to find {{{nameof(exportKey)}}}.", exportKey);
+                        continue;
+                    }
+                }
+
+                log.LogInformation($"{nameof(GetApprenticeshipsAsProvider)} failed to find an export for {{{nameof(requestDateTime)}}}.", requestDateTime);
+
+                return new NotFoundResult();
+            } 
+            catch (Exception ex)
+            {
+                log.LogError(ex, $"{nameof(GetApprenticeshipsAsProvider)} failed with exception.");
+                return new InternalServerErrorResult();
+            }
         }
     }
 }

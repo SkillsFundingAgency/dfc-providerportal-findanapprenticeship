@@ -1,12 +1,8 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Models;
-using Dfc.Providerportal.FindAnApprenticeship.Interfaces.DAS;
-using Dfc.Providerportal.FindAnApprenticeship.Models;
-using Dfc.Providerportal.FindAnApprenticeship.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Apprenticeships;
+using Dfc.Providerportal.FindAnApprenticeship.Models;
+using Dfc.Providerportal.FindAnApprenticeship.Models.DAS;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services
 {
@@ -15,6 +11,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services
         Task<IEnumerable<IApprenticeship>> GetApprenticeshipCollection();
         Task<IEnumerable<IApprenticeship>> GetLiveApprenticeships();
         Task<IEnumerable<IApprenticeship>> GetApprenticeshipsByUkprn(int ukprn);
-        IEnumerable<IDasProvider> ApprenticeshipsToDasProviders(List<Apprenticeship> apprenticeships);
+        Task<IEnumerable<DasProviderResult>> ApprenticeshipsToDasProviders(List<Apprenticeship> apprenticeships);
     }
 }
