@@ -64,6 +64,12 @@
       },
       "GenerateProviderExportSchedule": {
         "type": "string"
+      },
+      "sqlCourseDirectoryConnectionString": {
+        "type": "string",
+        "metadata": {
+          "description": "ADO.NET connection string for the course directory database"
+        }
       }
     },
     "variables": {
@@ -175,6 +181,15 @@
                 {
                   "name": "GenerateProviderExportSchedule",
                   "value": "[parameters('GenerateProviderExportSchedule')]"
+                }
+              ]
+            },
+            "appServiceConnectionStrings": {
+              "value": [
+                {
+                  "name": "DefaultConnection",
+                  "type": "SQLServer",
+                  "connectionString": "[parameters('sqlCourseDirectoryConnectionString')]"
                 }
               ]
             },

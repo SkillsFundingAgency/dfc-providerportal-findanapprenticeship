@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SqlClient;
 using Dfc.Providerportal.FindAnApprenticeship;
 using Dfc.Providerportal.FindAnApprenticeship.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
@@ -53,14 +54,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship
                 client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", options.ApiKey);
             });
 
-            services.AddHttpClient<IProviderService, ProviderService>(client =>
-            {
-                var options = providerServiceSettings.Get<ProviderServiceSettings>();
-
-                client.BaseAddress = new Uri(options.ApiUrl);
-                client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", options.ApiKey);
-            });
-
             #endregion
 
             #region Services
@@ -68,6 +61,13 @@ namespace Dfc.Providerportal.FindAnApprenticeship
             services.AddSingleton<IReferenceDataServiceClient, ReferenceDataServiceClient>();
             services.AddSingleton<IProviderServiceClient, ProviderServiceClient>();
             services.AddSingleton<Func<DateTimeOffset>>(() => DateTimeOffset.UtcNow);
+
+            services.AddSingleton<IProviderService>(s =>
+            {
+                var sqlConnectionString = s.GetRequiredService<IConfiguration>().GetValue<string>("ConnectionStrings:DefaultConnection");
+                return new ProviderService(() => new SqlConnection(sqlConnectionString));
+            });
+
             services.AddSingleton<IBlobStorageClient>(s =>
                 new AzureBlobStorageClient(
                     new AzureBlobStorageClientOptions(

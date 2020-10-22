@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
@@ -22,11 +21,6 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
             try
             {
                 return await _service.GetActiveProvidersAsync();
-            }
-            catch (HttpRequestException e)
-            {
-                // add polly retry
-                throw new ProviderServiceException(e);
             }
             catch (Exception e)
             {

@@ -1,8 +1,6 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Providers;
-
-namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
+﻿namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
 {
-    public class Contactpersonaldetails : IContactpersonaldetails
+    public class Contactpersonaldetails
     {
         public string[] PersonNameTitle { get; set; }
         public string[] PersonGivenName { get; set; }
