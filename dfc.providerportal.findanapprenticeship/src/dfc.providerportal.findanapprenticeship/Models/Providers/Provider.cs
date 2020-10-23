@@ -4,7 +4,6 @@ using Dfc.Providerportal.FindAnApprenticeship.Models.Provider;
 
 namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
 {
-
     public class Provider
     {
         public Guid Id { get; set; }
@@ -20,15 +19,19 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
         public Provideralias[] ProviderAliases { get; set; }
         public Verificationdetail[] VerificationDetails { get; set; }
         public Status Status { get; set; }
-
-        // Apprenticeship related
         public int? ProviderId { get; set; }
-        public int? UPIN { get; set; } // Needed to get LearnerSatisfaction & EmployerSatisfaction from FEChoices
+        public int? UPIN { get; set; }
         public string TradingName { get; set; }
         public bool NationalApprenticeshipProvider { get; set; }
         public string MarketingInformation { get; set; }
         public string Alias { get; set; }
         public ProviderType ProviderType { get; set; }
+        public ProviderDisplayNameSource DisplayNameSource { get; set; }
+
+        public string Name =>
+            DisplayNameSource == ProviderDisplayNameSource.TradingName && !string.IsNullOrEmpty(Alias)
+                ? Alias
+                : ProviderName;
     }
 
     public enum Status
@@ -47,5 +50,11 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
         Apprenticeship = 2,
         [Description("Both")]
         Both = Fe | Apprenticeship
+    }
+
+    public enum ProviderDisplayNameSource
+    {
+        ProviderName = 0,
+        TradingName = 1
     }
 }

@@ -21,13 +21,14 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
         public async Task<IEnumerable<Provider>> GetActiveProvidersAsync()
         {
             const string sql = @"
-                select * from Pttcd.ProviderContacts pc
-                where pc.ProviderId IN (
-                    select p.ProviderId
-                    from Pttcd.Providers p
-                    where p.ProviderStatus = 1 and p.UkrlpProviderStatusDescription = 'Active');
-                select * from Pttcd.Providers p
-                where p.ProviderStatus = 1 and p.UkrlpProviderStatusDescription = 'Active'";
+select * from Pttcd.ProviderContacts pc
+where pc.ProviderId IN (
+    select p.ProviderId
+    from Pttcd.Providers p
+    where p.ProviderStatus = 1 and p.UkrlpProviderStatusDescription = 'Active');
+
+select * from Pttcd.Providers p
+where p.ProviderStatus = 1 and p.UkrlpProviderStatusDescription = 'Active'";
 
             using (var con = _dbConnectionFactory())
             {
@@ -97,7 +98,8 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Helper
                             NationalApprenticeshipProvider = p.NationalApprenticeshipProvider,
                             MarketingInformation = p.MarketingInformation,
                             Alias = p.Alias,
-                            ProviderType = (ProviderType?)p.ProviderType ?? default
+                            ProviderType = (ProviderType?)p.ProviderType ?? default,
+                            DisplayNameSource = (ProviderDisplayNameSource)p.DisplayNameSource
                         })
                         .ToArray();
                 }
