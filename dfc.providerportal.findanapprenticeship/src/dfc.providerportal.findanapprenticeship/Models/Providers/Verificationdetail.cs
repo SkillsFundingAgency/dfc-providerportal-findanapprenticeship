@@ -1,8 +1,6 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Providers;
-
-namespace Dfc.Providerportal.FindAnApprenticeship.Models.Provider
+﻿namespace Dfc.Providerportal.FindAnApprenticeship.Models.Provider
 {
-    public class Verificationdetail : IVerificationdetail
+    public class Verificationdetail
     {
         public string VerificationAuthority { get; set; }
         public string VerificationID { get; set; }

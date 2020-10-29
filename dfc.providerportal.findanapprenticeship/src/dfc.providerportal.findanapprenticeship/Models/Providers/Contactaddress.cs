@@ -1,8 +1,6 @@
-﻿using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Providers;
-
-namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
+﻿namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
 {
-    public class Contactaddress :  IContactaddress
+    public class Contactaddress
     {
         public SAON SAON { get; set; }
         public PAON PAON { get; set; }
@@ -14,8 +12,5 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
         public object PostTown { get; set; }
         public string PostCode { get; set; }
         public object UniquePropertyReferenceNumber { get; set; }
-
     }
-
-
 }

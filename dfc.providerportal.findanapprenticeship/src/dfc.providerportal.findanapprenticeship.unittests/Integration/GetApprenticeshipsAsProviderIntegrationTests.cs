@@ -15,6 +15,7 @@ using Dfc.Providerportal.FindAnApprenticeship.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Helper;
 using Dfc.Providerportal.FindAnApprenticeship.Interfaces.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Models;
+using Dfc.Providerportal.FindAnApprenticeship.Models.Providers;
 using Dfc.Providerportal.FindAnApprenticeship.Services;
 using Dfc.Providerportal.FindAnApprenticeship.Settings;
 using Dfc.Providerportal.FindAnApprenticeship.Storage;
@@ -45,8 +46,7 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
         private readonly Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>> _referenceDataResponse;
         private readonly IReferenceDataService _referenceDataService;
         private readonly IReferenceDataServiceClient _referenceDataServiceClient;
-        private readonly Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>> _providerResponse;
-        private readonly IProviderService _providerService;
+        private readonly Mock<IProviderService> _providerService;
         private readonly IProviderServiceClient _providerServiceClient;
         private readonly IDASHelper _DASHelper;
         private readonly IApprenticeshipService _apprenticeshipService;
@@ -65,9 +65,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
             _referenceDataResponse = new Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>>();
             _referenceDataService = new ReferenceDataService(new HttpClient(new MockHttpMessageHandler(_referenceDataResponse.Object)) { BaseAddress = new Uri("https://test.com") });
             _referenceDataServiceClient = new ReferenceDataServiceClient(_referenceDataService);
-            _providerResponse = new Mock<Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>>>();
-            _providerService = new ProviderService(new HttpClient(new MockHttpMessageHandler(_providerResponse.Object)) { BaseAddress = new Uri("https://test.com") });
-            _providerServiceClient = new ProviderServiceClient(_providerService);
+            _providerService = new Mock<IProviderService>();
+            _providerServiceClient = new ProviderServiceClient(_providerService.Object);
             
             _DASHelper = new DASHelper(_telemetryClient);
             _apprenticeshipService = new ApprenticeshipService(_cosmosDbHelper.Object, _cosmosSettings, _DASHelper, _providerServiceClient, _referenceDataServiceClient, _telemetryClient);
@@ -90,11 +89,8 @@ namespace Dfc.ProviderPortal.FindAnApprenticeship.UnitTests.Integration
                     Content = new StringContent(await File.ReadAllTextAsync("Integration/fechoices.json"))
                 });
 
-            _providerResponse.Setup(s => s.Invoke(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()))
-                .Returns<HttpRequestMessage, CancellationToken>(async (r, ct) => new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(await File.ReadAllTextAsync("Integration/providers.json"))
-                });
+            _providerService.Setup(s => s.GetActiveProvidersAsync())
+                .Returns(async () => JsonConvert.DeserializeObject<IEnumerable<Provider>>(await File.ReadAllTextAsync("Integration/providers.json")));
 
             _cosmosDbHelper.Setup(s => s.GetLiveApprenticeships(It.IsAny<DocumentClient>(), It.IsAny<string>()))
                 .Returns(() => JsonConvert.DeserializeObject<List<Apprenticeship>>(File.ReadAllText("Integration/apprenticeships.json")));
