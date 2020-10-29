@@ -47,9 +47,7 @@ namespace Dfc.Providerportal.FindAnApprenticeship.Models.Providers
         [Description("F.E.")]
         Fe = 1,
         [Description("Apprenticeships")]
-        Apprenticeship = 2,
-        [Description("Both")]
-        Both = Fe | Apprenticeship
+        Apprenticeship = 2
     }
 
     public enum ProviderDisplayNameSource
